@@ -1,8 +1,9 @@
-import ComponentsPreview from "../pages/ComponentsPreview";
-import ThemePreview from "../pages/ThemePreview";
 import { Navigate, Route, Routes } from "react-router-dom";
 
+import AppLayout from "../layouts/AppLayout";
 import NotFound from "../pages/NotFound";
+import ThemePreview from "../pages/ThemePreview";
+import ComponentsPreview from "../pages/ComponentsPreview";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 
@@ -31,9 +32,6 @@ import AdminAuditLog from "../pages/admin/AdminAuditLog";
 export default function AppRouter() {
   return (
     <Routes>
-      <Route path="/theme" element={<ThemePreview />} />
-      <Route path="/components" element={<ComponentsPreview />} />
-
       <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* Public */}
@@ -41,31 +39,43 @@ export default function AppRouter() {
       <Route path="/register" element={<Register />} />
 
       {/* Student */}
-      <Route path="/student/dashboard" element={<StudentDashboard />} />
-      <Route path="/student/attendance-in" element={<AttendanceIn />} />
-      <Route path="/student/attendance-out" element={<AttendanceOut />} />
-      <Route path="/student/events" element={<BrowseEvents />} />
-      <Route path="/student/registrations" element={<MyRegistrations />} />
-      <Route path="/student/account" element={<MyAccount />} />
+      <Route path="/student" element={<AppLayout role="student" />}>
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<StudentDashboard />} />
+        <Route path="attendance-in" element={<AttendanceIn />} />
+        <Route path="attendance-out" element={<AttendanceOut />} />
+        <Route path="events" element={<BrowseEvents />} />
+        <Route path="registrations" element={<MyRegistrations />} />
+        <Route path="account" element={<MyAccount />} />
+      </Route>
 
       {/* Organizer */}
-      <Route path="/organizer/dashboard" element={<OrganizerDashboard />} />
-      <Route path="/organizer/events/create" element={<CreateEvent />} />
-      <Route path="/organizer/events" element={<MyEvents />} />
-      <Route path="/organizer/attendees" element={<Attendees />} />
-      <Route path="/organizer/registrations" element={<OrganizerRegistrations />} />
-      <Route path="/organizer/profile" element={<OrganizerProfile />} />
+      <Route path="/organizer" element={<AppLayout role="organizer" />}>
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<OrganizerDashboard />} />
+        <Route path="events/create" element={<CreateEvent />} />
+        <Route path="events" element={<MyEvents />} />
+        <Route path="attendees" element={<Attendees />} />
+        <Route path="registrations" element={<OrganizerRegistrations />} />
+        <Route path="profile" element={<OrganizerProfile />} />
+      </Route>
 
       {/* Admin */}
-      <Route path="/admin/dashboard" element={<AdminDashboard />} />
-      <Route path="/admin/users" element={<AdminUsers />} />
-      <Route path="/admin/organizers" element={<AdminOrganizers />} />
-      <Route path="/admin/events" element={<AdminEvents />} />
-      <Route path="/admin/settings" element={<AdminSettings />} />
-      <Route path="/admin/attendance" element={<AdminAttendance />} />
-      <Route path="/admin/audit-log" element={<AdminAuditLog />} />
+      <Route path="/admin" element={<AppLayout role="admin" />}>
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="users" element={<AdminUsers />} />
+        <Route path="organizers" element={<AdminOrganizers />} />
+        <Route path="events" element={<AdminEvents />} />
+        <Route path="settings" element={<AdminSettings />} />
+        <Route path="attendance" element={<AdminAttendance />} />
+        <Route path="audit-log" element={<AdminAuditLog />} />
+      </Route>
 
-      {/* Anything else */}
+      {/* Temporary preview pages (deleted in a later step) */}
+      <Route path="/theme" element={<ThemePreview />} />
+      <Route path="/components" element={<ComponentsPreview />} />
+
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

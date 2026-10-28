@@ -1,3 +1,4 @@
+import ComponentsPreview from "../pages/ComponentsPreview";
 import ThemePreview from "../pages/ThemePreview";
 import { Navigate, Route, Routes } from "react-router-dom";
 
@@ -31,6 +32,8 @@ export default function AppRouter() {
   return (
     <Routes>
       <Route path="/theme" element={<ThemePreview />} />
+      <Route path="/components" element={<ComponentsPreview />} />
+
       <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* Public */}

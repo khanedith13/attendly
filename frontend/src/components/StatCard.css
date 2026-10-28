@@ -1,0 +1,32 @@
+.stat-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .stat-card__value {
+    font-size: 27px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  
+  .stat-card__label {
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  
+  .stat-card__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-icon);
+    font-size: 17px;
+  }
+  
+  .stat-card__icon--primary { background: var(--primary-soft); color: var(--primary); }
+  .stat-card__icon--success { background: var(--success-bg);   color: var(--success-text); }
+  .stat-card__icon--warning { background: var(--warning-bg);   color: var(--warning-text); }
+  .stat-card__icon--info    { background: var(--info-bg);      color: var(--info-text); }

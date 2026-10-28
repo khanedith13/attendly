@@ -1,0 +1,26 @@
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 24px;
+    padding: 0 12px 0 9px;
+    border-radius: var(--radius-pill);
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  
+  .pill::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  
+  .pill--success { background: var(--success-bg); color: var(--success-text); }
+  .pill--info    { background: var(--info-bg);    color: var(--info-text); }
+  .pill--warning { background: var(--warning-bg); color: var(--warning-text); }
+  .pill--danger  { background: var(--danger-bg);  color: var(--danger-text); }
+  .pill--neutral { background: var(--neutral-bg); color: var(--neutral-text); }
+  .pill--primary { background: var(--primary-soft); color: var(--primary); }

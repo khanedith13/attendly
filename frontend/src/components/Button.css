@@ -40,3 +40,11 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.btn--lg {
+  padding: 15px 16px;
+}
+
+.btn--block {
+  width: 100%;
+}

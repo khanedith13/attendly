@@ -24,3 +24,13 @@
   width: 100%;
   height: 100%;
 }
+
+.logo--lg {
+  font-size: 20px;
+}
+
+.logo--lg .logo__mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}

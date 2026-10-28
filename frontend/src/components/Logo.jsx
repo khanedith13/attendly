@@ -1,8 +1,12 @@
 import "./Logo.css";
 
-export default function Logo({ onDark = false }) {
+export default function Logo({ onDark = false, large = false }) {
+  const classes = ["logo", onDark && "logo--on-dark", large && "logo--lg"]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div className={onDark ? "logo logo--on-dark" : "logo"}>
+    <div className={classes}>
       <span className="logo__mark">
         <svg viewBox="0 0 64 64" aria-hidden="true">
           <path

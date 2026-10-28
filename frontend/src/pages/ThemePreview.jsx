@@ -19,7 +19,9 @@ export default function ThemePreview() {
       <h1 style={{ fontSize: 26, letterSpacing: "-0.5px" }}>Theme preview</h1>
 
       <div style={{ display: "flex", gap: 24 }}>
-        <div style={{ padding: 24, background: "var(--surface)", borderRadius: "var(--radius-card)" }}>
+        <div
+          style={{ padding: 24, background: "var(--surface)", borderRadius: "var(--radius-card)" }}
+        >
           <Logo />
         </div>
         <div style={{ padding: 24, background: "var(--navy)", borderRadius: "var(--radius-card)" }}>

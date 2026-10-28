@@ -1,3 +1,5 @@
+import { useAuth } from "../../hooks/useAuth";
+import { firstErrors } from "../../utils/apiErrors";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
@@ -43,6 +45,8 @@ const emptyForm = {
 
 export default function Register() {
   const navigate = useNavigate();
+  const { register } = useAuth();
+  const [submitting, setSubmitting] = useState(false);
   const [role, setRole] = useState("student");
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
@@ -50,7 +54,7 @@ export default function Register() {
   function handleChange(event) {
     const { name, value, type, checked } = event.target;
     setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
-    setErrors((prev) => ({ ...prev, [name]: undefined }));
+    setErrors((prev) => ({ ...prev, [name]: undefined, form: undefined }));
   }
 
   function validate() {
@@ -73,16 +77,27 @@ export default function Register() {
     return next;
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const next = validate();
     setErrors(next);
     if (Object.keys(next).length > 0) return;
-
-    // TEMPORARY: Step 7 sends this to the API. For now we just go to the login page.
-    navigate("/login");
+  
+    setSubmitting(true);
+    try {
+      await register({ ...form, role });
+      navigate("/login", { state: { registered: true } });
+    } catch (error) {
+      const fieldErrors = firstErrors(error.errors);
+      // The role tabs have no inline error slot, so a role error shows in the red box.
+      setErrors({
+        ...fieldErrors,
+        form: fieldErrors.role ?? (error.status === 422 ? undefined : error.message),
+      });
+    } finally {
+      setSubmitting(false);
+    }
   }
-
   return (
     <AuthLayout art={art} wide>
       <h2 className="auth__title">Create an account</h2>
@@ -155,8 +170,10 @@ export default function Register() {
         </label>
         {errors.agree && <p className="auth__check-error">{errors.agree}</p>}
 
-        <Button type="submit" size="lg" className="btn--block">
-          Create account
+        {errors.form && <p className="auth__form-error">{errors.form}</p>}
+
+        <Button type="submit" size="lg" className="btn--block" disabled={submitting}>
+          {submitting ? "Creating account..." : "Create account"}
         </Button>
       </form>
 

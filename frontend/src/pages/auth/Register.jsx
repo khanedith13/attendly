@@ -82,7 +82,7 @@ export default function Register() {
     const next = validate();
     setErrors(next);
     if (Object.keys(next).length > 0) return;
-  
+
     setSubmitting(true);
     try {
       await register({ ...form, role });

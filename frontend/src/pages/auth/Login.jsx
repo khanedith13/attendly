@@ -123,7 +123,12 @@ export default function Login() {
 
         <div className="auth__meta">
           <label className="auth__check">
-            <input type="checkbox" name="remember" checked={form.remember} onChange={handleChange} />
+            <input
+              type="checkbox"
+              name="remember"
+              checked={form.remember}
+              onChange={handleChange}
+            />
             Remember me
           </label>
           <button type="button" className="auth__link-btn">

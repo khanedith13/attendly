@@ -1,14 +1,14 @@
 .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-card);
-    padding: 21px;
-    box-shadow: var(--shadow-card);
-  }
-  
-  .card__title {
-    margin-bottom: 14px;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text);
-  }
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 21px;
+  box-shadow: var(--shadow-card);
+}
+
+.card__title {
+  margin-bottom: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}

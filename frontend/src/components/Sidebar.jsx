@@ -1,3 +1,4 @@
+import { useAuth } from "../hooks/useAuth";
 import { NavLink, useNavigate } from "react-router-dom";
 import Avatar from "./Avatar";
 import Logo from "./Logo";
@@ -5,7 +6,12 @@ import "./Sidebar.css";
 
 export default function Sidebar({ groups, profile }) {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
+  async function handleLogout() {
+    await logout();
+    navigate("/login", { replace: true });
+  }
   return (
     <aside className="sidebar">
       <div className="sidebar__brand">
@@ -32,7 +38,7 @@ export default function Sidebar({ groups, profile }) {
       </nav>
 
       <div className="sidebar__bottom">
-        <button type="button" className="nav-item" onClick={() => navigate("/login")}>
+        <button type="button" className="nav-item" onClick={handleLogout}>
           <span className="nav-item__icon">↪</span>
           Log out
         </button>

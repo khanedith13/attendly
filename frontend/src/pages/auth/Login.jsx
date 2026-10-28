@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import FormField from "../../components/FormField";
 import RoleTabs from "../../components/RoleTabs";
+import { useAuth } from "../../hooks/useAuth";
 import AuthLayout from "../../layouts/AuthLayout";
+import { firstErrors } from "../../utils/apiErrors";
+import { homePath } from "../../utils/roles";
 import { isValidEmail } from "../../utils/validators";
 
 const art = (
@@ -41,14 +44,18 @@ const art = (
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
+
   const [role, setRole] = useState("student");
   const [form, setForm] = useState({ email: "", password: "", remember: false });
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   function handleChange(event) {
     const { name, value, type, checked } = event.target;
     setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
-    setErrors((prev) => ({ ...prev, [name]: undefined }));
+    setErrors((prev) => ({ ...prev, [name]: undefined, form: undefined }));
   }
 
   function validate() {
@@ -59,20 +66,34 @@ export default function Login() {
     return next;
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const next = validate();
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
-    // TEMPORARY: goes to the dashboard of the selected tab. Step 7 replaces this with the real API login.
-    navigate(`/${role}/dashboard`);
+    setSubmitting(true);
+    try {
+      const user = await login({ email: form.email, password: form.password }, role);
+      navigate(homePath(user.role), { replace: true });
+    } catch (error) {
+      setErrors({
+        ...firstErrors(error.errors),
+        form: error.status === 422 ? undefined : error.message,
+      });
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
     <AuthLayout art={art} showLogo>
       <h2 className="auth__title">Welcome back</h2>
       <p className="auth__lead">Log in to manage your attendance and events.</p>
+
+      {location.state?.registered && (
+        <p className="auth__notice">Account created. Log in to continue.</p>
+      )}
 
       <RoleTabs value={role} onChange={setRole} />
 
@@ -115,8 +136,10 @@ export default function Login() {
           </button>
         </div>
 
-        <Button type="submit" size="lg" className="btn--block">
-          Log in to Attendly
+        {errors.form && <p className="auth__form-error">{errors.form}</p>}
+
+        <Button type="submit" size="lg" className="btn--block" disabled={submitting}>
+          {submitting ? "Logging in..." : "Log in to Attendly"}
         </Button>
       </form>
 

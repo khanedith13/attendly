@@ -1,3 +1,4 @@
+import ThemePreview from "../pages/ThemePreview";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import NotFound from "../pages/NotFound";
@@ -29,6 +30,7 @@ import AdminAuditLog from "../pages/admin/AdminAuditLog";
 export default function AppRouter() {
   return (
     <Routes>
+      <Route path="/theme" element={<ThemePreview />} />
       <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* Public */}

@@ -1,3 +1,70 @@
+:root {
+  /* Brand */
+  --primary: #4f46e5;
+  --primary-light: #818cf8;
+  --violet: #7c3aed;
+  --primary-soft: #eef2ff;
+  --primary-soft-border: #c7d2fe;
+
+  /* Sidebar (dark navy) */
+  --navy: #111827;
+  --navy-active: #202b4a;
+  --navy-border: #253044;
+  --navy-text: #cbd5e1;
+  --navy-muted: #64748b;
+  --navy-icon: #94a3b8;
+  --navy-icon-active: #a5b4fc;
+
+  /* Surfaces and text */
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --border-soft: #eef2f7;
+  --text: #172033;
+  --text-body: #334155;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+
+  /* Status colors (background / text pairs for pills) */
+  --success-bg: #ecfdf5;
+  --success-text: #059669;
+  --info-bg: #e0f2fe;
+  --info-text: #0284c7;
+  --warning-bg: #fff7ed;
+  --warning-text: #d97706;
+  --warning-border: #fed7aa;
+  --warning-strong: #9a3412;
+  --danger-bg: #fef2f2;
+  --danger-text: #dc2626;
+  --neutral-bg: #f1f5f9;
+  --neutral-text: #64748b;
+
+  /* Shape */
+  --radius-card: 16px;
+  --radius-btn: 11px;
+  --radius-nav: 11px;
+  --radius-icon: 12px;
+  --radius-input: 10px;
+  --radius-pill: 99px;
+
+  /* Shadows */
+  --shadow-card: 0 7px 20px rgba(15, 23, 42, 0.06);
+  --shadow-btn: 0 8px 20px rgba(79, 70, 229, 0.18);
+  --shadow-brand: 0 8px 20px rgba(79, 70, 229, 0.34);
+
+  /* Gradients */
+  --gradient-brand: linear-gradient(135deg, #818cf8, #4f46e5);
+  --gradient-cover: linear-gradient(135deg, #4f46e5, #7c3aed);
+  --gradient-avatar: linear-gradient(135deg, #c4b5fd, #818cf8);
+
+  /* Layout */
+  --sidebar-width: 246px;
+  --topbar-height: 74px;
+
+  /* Font */
+  --font-sans: "Inter Variable", system-ui, sans-serif;
+}
+
 *,
 *::before,
 *::after {
@@ -6,5 +73,29 @@
 
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
 }

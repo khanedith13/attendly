@@ -1,11 +1,11 @@
 .avatar {
-    display: flex;
-    flex: none;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: var(--gradient-avatar);
-    color: #312e81;
-    font-size: 12px;
-    font-weight: 700;
-  }
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--gradient-avatar);
+  color: #312e81;
+  font-size: 12px;
+  font-weight: 700;
+}

@@ -66,7 +66,8 @@ export default function Register() {
     else if (form.password.length < 8) next.password = "Use at least 8 characters.";
 
     if (!form.confirmPassword) next.confirmPassword = "Confirm your password.";
-    else if (form.confirmPassword !== form.password) next.confirmPassword = "Passwords do not match.";
+    else if (form.confirmPassword !== form.password)
+      next.confirmPassword = "Passwords do not match.";
 
     if (!form.agree) next.agree = "You must agree to continue.";
     return next;
@@ -149,8 +150,8 @@ export default function Register() {
         </div>
 
         <label className="auth__check">
-          <input type="checkbox" name="agree" checked={form.agree} onChange={handleChange} />
-          I agree to the Terms &amp; Privacy Policy
+          <input type="checkbox" name="agree" checked={form.agree} onChange={handleChange} />I agree
+          to the Terms &amp; Privacy Policy
         </label>
         {errors.agree && <p className="auth__check-error">{errors.agree}</p>}
 

@@ -12,7 +12,11 @@ export default function FormField({ label, id, hint, error, ...inputProps }) {
         aria-invalid={Boolean(error)}
         {...inputProps}
       />
-      {error ? <p className="field__error">{error}</p> : hint && <p className="field__hint">{hint}</p>}
+      {error ? (
+        <p className="field__error">{error}</p>
+      ) : (
+        hint && <p className="field__hint">{hint}</p>
+      )}
     </div>
   );
 }

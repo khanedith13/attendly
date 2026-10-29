@@ -1,8 +1,7 @@
 import "./DataTable.css";
 
 // columns: [{ key: "name", header: "Event", bold: true, render: (row) => ... }]
-export default function DataTable({ columns, rows, rowKey = "id" }) {
-  return (
+export default function DataTable({ columns, rows, rowKey = "id", empty = "Nothing to show yet." }) {  return (
     <div className="table-wrap">
       <table className="table">
         <thead>
@@ -13,6 +12,13 @@ export default function DataTable({ columns, rows, rowKey = "id" }) {
           </tr>
         </thead>
         <tbody>
+          {rows.length === 0 && (
+            <tr>
+              <td colSpan={columns.length} className="table__empty">
+                {empty}
+              </td>
+            </tr>
+          )}
           {rows.map((row) => (
             <tr key={row[rowKey]}>
               {columns.map((col) => (

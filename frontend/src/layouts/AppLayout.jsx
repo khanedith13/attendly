@@ -32,7 +32,7 @@ export default function AppLayout({ role }) {
       <div className="app__main">
         <Topbar
           roleLabel={config.label}
-          pageLabel={current ? current.label : ""}
+          pageLabel={pageLabel}
           variant={config.topbar}
           initials={profile.initials}
           badge={badge}

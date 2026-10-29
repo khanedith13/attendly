@@ -87,3 +87,29 @@ export async function getCurrentUser() {
   const { token, user } = storage.getSession();
   return token ? user : null;
 }
+
+export async function updateProfile(userId, { name }) {
+  const overrides = readOverrides();
+  storage.setJSON(OVERRIDES_KEY, { ...overrides, [userId]: { ...overrides[userId], name } });
+
+  const session = storage.getSession();
+  if (session.user?.id === userId) {
+    storage.setSession({ ...session, user: { ...session.user, name } });
+  }
+}
+
+export async function changePassword(userId, { currentPassword, newPassword }) {
+  const found = allUsers().find((user) => user.id === userId);
+
+  if (!found || found.password !== currentPassword) {
+    throw new ApiError("Validation failed.", 422, {
+      currentPassword: ["Current password is incorrect."],
+    });
+  }
+
+  const overrides = readOverrides();
+  storage.setJSON(OVERRIDES_KEY, {
+    ...overrides,
+    [userId]: { ...overrides[userId], password: newPassword },
+  });
+}

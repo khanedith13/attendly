@@ -18,12 +18,18 @@ const columns = [
   { key: "event", header: "Event", bold: true },
   { key: "date", header: "Date", render: (row) => formatDate(row.timeIn) },
   { key: "in", header: "Check in", render: (row) => formatTime(row.timeIn) },
-  { key: "out", header: "Check out", render: (row) => (row.timeOut ? formatTime(row.timeOut) : "—") },
+  {
+    key: "out",
+    header: "Check out",
+    render: (row) => (row.timeOut ? formatTime(row.timeOut) : "—"),
+  },
   {
     key: "status",
     header: "Status",
     render: (row) => (
-      <Pill tone={row.timeOut ? "success" : "info"}>{row.timeOut ? "Completed" : "In progress"}</Pill>
+      <Pill tone={row.timeOut ? "success" : "info"}>
+        {row.timeOut ? "Completed" : "In progress"}
+      </Pill>
     ),
   },
 ];
@@ -111,7 +117,11 @@ export default function StudentDashboard() {
               <div className="quick__icon quick__icon--info">↗</div>
               <h4>Attendance Out</h4>
               <p>Scan when you leave or enter your details manually.</p>
-              <Button size="sm" variant="outline" onClick={() => navigate("/student/attendance-out")}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => navigate("/student/attendance-out")}
+              >
                 Check out
               </Button>
             </div>

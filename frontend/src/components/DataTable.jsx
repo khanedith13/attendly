@@ -1,7 +1,13 @@
 import "./DataTable.css";
 
 // columns: [{ key: "name", header: "Event", bold: true, render: (row) => ... }]
-export default function DataTable({ columns, rows, rowKey = "id", empty = "Nothing to show yet." }) {  return (
+export default function DataTable({
+  columns,
+  rows,
+  rowKey = "id",
+  empty = "Nothing to show yet.",
+}) {
+  return (
     <div className="table-wrap">
       <table className="table">
         <thead>

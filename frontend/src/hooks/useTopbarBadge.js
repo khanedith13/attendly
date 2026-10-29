@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 
-// A page calls this to show a status pill in the topbar. Empty text removes it.
+// Show a status pill in the topbar. Empty text removes it.
 export function useTopbarBadge(tone, text) {
   const { setBadge } = useOutletContext();
 
@@ -9,4 +9,14 @@ export function useTopbarBadge(tone, text) {
     setBadge(text ? { tone, text } : null);
     return () => setBadge(null);
   }, [setBadge, tone, text]);
+}
+
+// Show an icon button (instead of the bell) in the topbar.
+export function useTopbarIcon(icon) {
+  const { setBadge } = useOutletContext();
+
+  useEffect(() => {
+    setBadge({ icon });
+    return () => setBadge(null);
+  }, [setBadge, icon]);
 }

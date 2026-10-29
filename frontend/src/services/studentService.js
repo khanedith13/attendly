@@ -1,6 +1,6 @@
 import { ApiError } from "../api/ApiError";
 import { storage } from "../utils/storage";
-import { getCatalog, getCatalogEvent } from "./catalog";
+import { adjustCounts, getCatalog, getCatalogEvent } from "./catalog";
 
 const DEMO_STUDENT_ID = 2; // the demo student in authService
 const LATE_GRACE_MS = 15 * 60 * 1000;
@@ -8,6 +8,7 @@ const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms));
 const stateKey = (userId) => `attendly_student_v2_${userId}`;
 const newToken = () => crypto.randomUUID();
 const byStart = (a, b) => new Date(a.startsAt) - new Date(b.startsAt);
+const isOpen = (event) => event.status === "published";
 
 function startOfToday() {
   const date = new Date();
@@ -43,30 +44,9 @@ function demoState() {
       reg(4, 104, "2026-10-04T16:20:00"),
     ],
     history: [
-      {
-        id: 11,
-        event: "Toastmasters Leadership Lab",
-        timeIn: "2026-10-06T08:57:00",
-        timeOut: "2026-10-06T11:46:00",
-        attendance: "present",
-        registeredAt: "2026-09-30T10:12:00",
-      },
-      {
-        id: 12,
-        event: "Talent Acquisition 101",
-        timeIn: "2026-10-04T13:03:00",
-        timeOut: "2026-10-04T16:18:00",
-        attendance: "late",
-        registeredAt: "2026-09-28T15:30:00",
-      },
-      {
-        id: 13,
-        event: "AI Career Readiness",
-        timeIn: "2026-09-29T09:12:00",
-        timeOut: "2026-09-29T12:09:00",
-        attendance: "present",
-        registeredAt: "2026-09-22T11:00:00",
-      },
+      { id: 11, event: "Toastmasters Leadership Lab", timeIn: "2026-10-06T08:57:00", timeOut: "2026-10-06T11:46:00", attendance: "present", registeredAt: "2026-09-30T10:12:00" },
+      { id: 12, event: "Talent Acquisition 101", timeIn: "2026-10-04T13:03:00", timeOut: "2026-10-04T16:18:00", attendance: "late", registeredAt: "2026-09-28T15:30:00" },
+      { id: 13, event: "AI Career Readiness", timeIn: "2026-09-29T09:12:00", timeOut: "2026-09-29T12:09:00", attendance: "present", registeredAt: "2026-09-22T11:00:00" },
     ],
     studentId: "2026-10452",
     activeSession: null,
@@ -97,7 +77,7 @@ function joinEvent(registration) {
     eventId: event.id,
     qrToken: registration.qrToken,
     registeredAt: registration.registeredAt,
-    status: registration.status,
+    registrationStatus: registration.status,
   };
 }
 
@@ -105,8 +85,7 @@ function joinEvent(registration) {
 function upcomingRegistrations(state) {
   const attendedIds = new Set(state.history.map((entry) => entry.eventId).filter(Boolean));
   return state.registrations.filter(
-    (registration) =>
-      registration.status === "registered" && !attendedIds.has(registration.eventId),
+    (registration) => registration.status === "registered" && !attendedIds.has(registration.eventId),
   );
 }
 
@@ -119,6 +98,7 @@ export async function getDashboard(userId) {
   const upcoming = upcomingRegistrations(state)
     .map(joinEvent)
     .filter(Boolean)
+    .filter(isOpen)
     .filter((event) => new Date(event.startsAt) >= startOfToday())
     .sort(byStart);
 
@@ -140,12 +120,15 @@ export async function listEvents(userId) {
   await delay();
   const state = loadState(userId);
   const mine = new Map(state.registrations.map((r) => [r.eventId, r.status]));
+  const now = Date.now();
 
-  return getCatalog().map((event) => ({
-    ...event,
-    myStatus: mine.get(event.id) ?? null,
-    isFull: event.registered >= event.capacity,
-  }));
+  return getCatalog()
+    .filter((event) => isOpen(event) && new Date(event.endsAt).getTime() >= now)
+    .map((event) => ({
+      ...event,
+      myStatus: mine.get(event.id) ?? null,
+      isFull: event.registered >= event.capacity,
+    }));
 }
 
 export async function registerForEvent(user, eventId) {
@@ -153,8 +136,8 @@ export async function registerForEvent(user, eventId) {
   const state = loadState(user.id);
   const event = getCatalogEvent(eventId);
 
-  if (!event) throw new ApiError("Event not found.", 404);
-  if (new Date(event.startsAt) < startOfToday()) {
+  if (!event || !isOpen(event)) throw new ApiError("Event not found.", 404);
+  if (new Date(event.endsAt) < new Date()) {
     throw new ApiError("Registration is closed for this event.", 409);
   }
 
@@ -173,17 +156,12 @@ export async function registerForEvent(user, eventId) {
     registration = { ...existing, status: "registered", qrToken: newToken(), registeredAt: now };
     registrations = state.registrations.map((r) => (r.id === existing.id ? registration : r));
   } else {
-    registration = {
-      id: Date.now(),
-      eventId,
-      status: "registered",
-      qrToken: newToken(),
-      registeredAt: now,
-    };
+    registration = { id: Date.now(), eventId, status: "registered", qrToken: newToken(), registeredAt: now };
     registrations = [registration, ...state.registrations];
   }
 
   saveState(user.id, { ...state, registrations });
+  adjustCounts(eventId, { registered: 1 });
   return registration;
 }
 
@@ -210,13 +188,18 @@ export async function cancelRegistration(user, registrationId) {
       r.id === registrationId ? { ...r, status: "cancelled" } : r,
     ),
   });
+  adjustCounts(registration.eventId, { registered: -1 });
 }
 
 export async function getMyRegistrations(userId) {
   await delay();
   const state = loadState(userId);
 
-  const upcoming = upcomingRegistrations(state).map(joinEvent).filter(Boolean).sort(byStart);
+  const upcoming = upcomingRegistrations(state)
+    .map(joinEvent)
+    .filter(Boolean)
+    .filter(isOpen)
+    .sort(byStart);
   const cancelled = state.registrations
     .filter((r) => r.status === "cancelled")
     .map(joinEvent)
@@ -236,7 +219,7 @@ export async function getMyRegistrations(userId) {
   };
 }
 
-/* ---------- Attendance (Step 9) ---------- */
+/* ---------- Attendance ---------- */
 
 function lastCheckInOf(state) {
   const items = state.history.map((entry) => ({ event: entry.event, at: entry.timeIn }));
@@ -252,6 +235,7 @@ export async function getAttendanceInData(user) {
   const events = upcomingRegistrations(state)
     .map(joinEvent)
     .filter(Boolean)
+    .filter(isOpen)
     .map((event) => ({ id: event.eventId, title: event.title }));
 
   return {
@@ -280,7 +264,7 @@ export async function checkIn(user, { studentId, email, eventId }) {
 
   const registration = upcomingRegistrations(state).find((r) => r.eventId === eventId);
   const event = registration ? getCatalogEvent(eventId) : null;
-  if (!event) {
+  if (!event || !isOpen(event)) {
     throw new ApiError("Validation failed.", 422, {
       eventId: ["Select one of your registered events."],
     });
@@ -306,6 +290,7 @@ export async function checkIn(user, { studentId, email, eventId }) {
     registeredAt: registration.registeredAt,
   };
   saveState(user.id, { ...state, studentId, activeSession: session });
+  adjustCounts(event.id, { checkedIn: 1 });
   return session;
 }
 

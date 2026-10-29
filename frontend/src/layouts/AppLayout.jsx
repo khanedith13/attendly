@@ -20,7 +20,10 @@ export default function AppLayout({ role }) {
   };
 
   const allItems = config.groups.flatMap((group) => group.items);
-  const current = allItems.find((item) => item.path === pathname);
+  const current = allItems
+    .filter((item) => pathname === item.path || pathname.startsWith(`${item.path}/`))
+    .sort((a, b) => b.path.length - a.path.length)[0];
+  const pageLabel = pathname.endsWith("/edit") ? "Edit Event" : (current?.label ?? "");
 
   return (
     <div className="app">

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
@@ -9,6 +10,7 @@ import "./AppLayout.css";
 export default function AppLayout({ role }) {
   const { pathname } = useLocation();
   const { user } = useAuth();
+  const [badge, setBadge] = useState(null);
   const config = roleConfig[role];
 
   const profile = {
@@ -30,9 +32,10 @@ export default function AppLayout({ role }) {
           pageLabel={current ? current.label : ""}
           variant={config.topbar}
           initials={profile.initials}
+          badge={badge}
         />
         <main className="app__content">
-          <Outlet />
+          <Outlet context={{ setBadge }} />
         </main>
       </div>
     </div>

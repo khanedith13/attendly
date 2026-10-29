@@ -8,3 +8,7 @@ export function isValidEmail(value) {
 export function isSchoolEmail(value) {
   return value.trim().toLowerCase().endsWith(`@${SCHOOL_DOMAIN}`);
 }
+
+export function isStudentId(value) {
+  return /^\d{4}-\d{5}$/.test(value.trim());
+}

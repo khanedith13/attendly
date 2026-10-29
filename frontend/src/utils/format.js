@@ -20,3 +20,15 @@ export function formatDate(iso) {
 export function isToday(iso) {
   return new Date(iso).toDateString() === new Date().toDateString();
 }
+
+export function formatShortDateTime(iso) {
+  const date = new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return `${date}, ${formatTime(iso)}`;
+}
+
+export function formatDuration(ms) {
+  const totalMinutes = Math.max(0, Math.floor(ms / 60000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+}

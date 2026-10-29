@@ -2,7 +2,17 @@ import Avatar from "./Avatar";
 import Pill from "./Pill";
 import "./Topbar.css";
 
-export default function Topbar({ roleLabel, pageLabel, variant, initials }) {
+export default function Topbar({ roleLabel, pageLabel, variant, initials, badge }) {
+  function renderExtra() {
+    if (badge) return <Pill tone={badge.tone}>{badge.text}</Pill>;
+    if (variant === "reviews") return <Pill tone="warning">3 reviews needed</Pill>;
+    return (
+      <button type="button" className="icon-btn" aria-label="Notifications">
+        ♢<span className="icon-btn__dot" />
+      </button>
+    );
+  }
+
   return (
     <header className="topbar">
       <div className="topbar__crumb">
@@ -10,13 +20,7 @@ export default function Topbar({ roleLabel, pageLabel, variant, initials }) {
       </div>
 
       <div className="topbar__actions">
-        {variant === "reviews" ? (
-          <Pill tone="warning">3 reviews needed</Pill>
-        ) : (
-          <button type="button" className="icon-btn" aria-label="Notifications">
-            ♢<span className="icon-btn__dot" />
-          </button>
-        )}
+        {renderExtra()}
         <Avatar initials={initials} />
       </div>
     </header>

@@ -15,6 +15,8 @@ export const storage = {
   setSession: (session) => localStorage.setItem(SESSION_KEY, JSON.stringify(session)),
   clearSession: () => localStorage.removeItem(SESSION_KEY),
 
+  getJSON: (key, fallback) => read(key, fallback),
+  setJSON: (key, value) => localStorage.setItem(key, JSON.stringify(value)),
   // Mock only: accounts created through the Register form
   getMockUsers: () => read(MOCK_USERS_KEY, []),
   setMockUsers: (users) => localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users)),

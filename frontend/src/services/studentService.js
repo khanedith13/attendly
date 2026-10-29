@@ -1,0 +1,109 @@
+import { storage } from "../utils/storage";
+
+const DEMO_STUDENT_ID = 2; // the demo student in authService
+const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms));
+const stateKey = (userId) => `attendly_student_${userId}`;
+
+// offsetDays: 0 = today, 3 = three days from now
+function dayAt(offsetDays, hour, minute) {
+  const date = new Date();
+  date.setDate(date.getDate() + offsetDays);
+  date.setHours(hour, minute, 0, 0);
+  return date.toISOString();
+}
+
+function emptyState() {
+  return {
+    stats: { attended: 0, rate: 0, upcoming: 0, hours: 0 },
+    events: [],
+    history: [],
+    studentId: null,
+    activeSession: null,
+  };
+}
+
+function demoState() {
+  return {
+    stats: { attended: 18, rate: 96, upcoming: 4, hours: 7 },
+    events: [
+      {
+        id: 101,
+        title: "AI & Future Skills Summit",
+        venue: "Innovation Hall",
+        campus: "Main Campus",
+        startsAt: dayAt(0, 16, 30),
+        seat: 118,
+        capacity: 300,
+      },
+      {
+        id: 102,
+        title: "Toastmasters Leadership Lab",
+        venue: "Room 204",
+        campus: "Business Building",
+        startsAt: dayAt(3, 9, 0),
+        seat: 96,
+        capacity: 120,
+      },
+      {
+        id: 103,
+        title: "Talent Acquisition 101",
+        venue: "Career Center",
+        campus: "Main Campus",
+        startsAt: dayAt(5, 13, 0),
+        seat: 150,
+        capacity: 200,
+      },
+    ],
+    history: [
+      {
+        id: 1,
+        event: "Toastmasters Leadership Lab",
+        timeIn: "2026-10-06T08:57:00",
+        timeOut: "2026-10-06T11:46:00",
+      },
+      {
+        id: 2,
+        event: "Talent Acquisition 101",
+        timeIn: "2026-10-04T13:03:00",
+        timeOut: "2026-10-04T16:18:00",
+      },
+      {
+        id: 3,
+        event: "AI Career Readiness",
+        timeIn: "2026-09-29T09:12:00",
+        timeOut: "2026-09-29T12:09:00",
+      },
+    ],
+    studentId: "2026-10452",
+    activeSession: null,
+  };
+}
+
+export function loadState(userId) {
+  const saved = storage.getJSON(stateKey(userId), null);
+  if (saved) return saved;
+  return userId === DEMO_STUDENT_ID ? demoState() : emptyState();
+}
+
+export function saveState(userId, state) {
+  storage.setJSON(stateKey(userId), state);
+}
+
+export async function getDashboard(userId) {
+  await delay();
+  const state = loadState(userId);
+
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const nextEvent =
+    state.events
+      .filter((event) => new Date(event.startsAt) >= startOfToday)
+      .sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt))[0] ?? null;
+
+  const recent = [...state.history]
+    .sort((a, b) => new Date(b.timeIn) - new Date(a.timeIn))
+    .slice(0, 5);
+
+  return { stats: state.stats, nextEvent, recent };
+}

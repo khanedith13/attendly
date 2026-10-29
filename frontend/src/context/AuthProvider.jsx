@@ -38,6 +38,11 @@ export default function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    const current = await authService.getCurrentUser();
+    setUser(current);
+  }, []);
+
   const value = useMemo(
     () => ({ user, loading, login, register, logout }),
     [user, loading, login, register, logout],

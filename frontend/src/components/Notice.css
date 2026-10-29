@@ -1,0 +1,23 @@
+.notice {
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: var(--radius-input);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  
+  .notice--danger {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+  }
+  
+  .notice--success {
+    background: var(--success-bg);
+    color: var(--success-text);
+    font-weight: 700;
+  }
+  
+  .notice--info {
+    background: var(--info-bg);
+    color: var(--info-text);
+  }

@@ -30,3 +30,8 @@
 .table__bold {
   font-weight: 700;
 }
+
+.table__empty {
+  text-align: center;
+  color: var(--text-muted);
+}

@@ -1,0 +1,25 @@
+.event-cover {
+    position: relative;
+    overflow: hidden;
+    background: var(--gradient-cover);
+  }
+  
+  .event-cover::after {
+    content: "";
+    position: absolute;
+    top: -60px;
+    right: -40px;
+    width: 220px;
+    height: 220px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 50%;
+    box-shadow: 0 0 0 28px rgba(255, 255, 255, 0.05);
+  }
+  
+  .event-cover--blue {
+    background: linear-gradient(135deg, #0284c7, #4f46e5);
+  }
+  
+  .event-cover--green {
+    background: linear-gradient(135deg, #059669, #0284c7);
+  }

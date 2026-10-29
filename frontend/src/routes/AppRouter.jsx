@@ -65,6 +65,7 @@ export default function AppRouter() {
           <Route path="attendees" element={<Attendees />} />
           <Route path="registrations" element={<OrganizerRegistrations />} />
           <Route path="profile" element={<OrganizerProfile />} />
+          <Route path="events/:id/edit" element={<CreateEvent />} />
         </Route>
       </Route>
 

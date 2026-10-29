@@ -44,3 +44,9 @@
   font-size: 11px;
   color: var(--danger-text);
 }
+
+.field__input[readonly] {
+  background: var(--bg);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}

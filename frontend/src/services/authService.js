@@ -22,7 +22,14 @@ const seedUsers = [
   },
 ];
 
-const allUsers = () => [...seedUsers, ...storage.getMockUsers()];
+const OVERRIDES_KEY = "attendly_user_overrides";
+const readOverrides = () => storage.getJSON(OVERRIDES_KEY, {});
+
+// Edits made on My Account (name, password) are layered on top of the base users.
+const allUsers = () => {
+  const overrides = readOverrides();
+  return [...seedUsers, ...storage.getMockUsers()].map((user) => ({ ...user, ...overrides[user.id] }));
+};
 
 function publicUser({ id, name, email, role }) {
   return { id, name, email, role };

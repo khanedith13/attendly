@@ -4,7 +4,14 @@ import "./Topbar.css";
 
 export default function Topbar({ roleLabel, pageLabel, variant, initials, badge }) {
   function renderExtra() {
-    if (badge) return <Pill tone={badge.tone}>{badge.text}</Pill>;
+    if (badge?.text) return <Pill tone={badge.tone}>{badge.text}</Pill>;
+    if (badge?.icon) {
+      return (
+        <button type="button" className="icon-btn" aria-label="Search">
+          {badge.icon}
+        </button>
+      );
+    }
     if (variant === "reviews") return <Pill tone="warning">3 reviews needed</Pill>;
     return (
       <button type="button" className="icon-btn" aria-label="Notifications">

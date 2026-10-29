@@ -44,9 +44,30 @@ function demoState() {
       reg(4, 104, "2026-10-04T16:20:00"),
     ],
     history: [
-      { id: 11, event: "Toastmasters Leadership Lab", timeIn: "2026-10-06T08:57:00", timeOut: "2026-10-06T11:46:00", attendance: "present", registeredAt: "2026-09-30T10:12:00" },
-      { id: 12, event: "Talent Acquisition 101", timeIn: "2026-10-04T13:03:00", timeOut: "2026-10-04T16:18:00", attendance: "late", registeredAt: "2026-09-28T15:30:00" },
-      { id: 13, event: "AI Career Readiness", timeIn: "2026-09-29T09:12:00", timeOut: "2026-09-29T12:09:00", attendance: "present", registeredAt: "2026-09-22T11:00:00" },
+      {
+        id: 11,
+        event: "Toastmasters Leadership Lab",
+        timeIn: "2026-10-06T08:57:00",
+        timeOut: "2026-10-06T11:46:00",
+        attendance: "present",
+        registeredAt: "2026-09-30T10:12:00",
+      },
+      {
+        id: 12,
+        event: "Talent Acquisition 101",
+        timeIn: "2026-10-04T13:03:00",
+        timeOut: "2026-10-04T16:18:00",
+        attendance: "late",
+        registeredAt: "2026-09-28T15:30:00",
+      },
+      {
+        id: 13,
+        event: "AI Career Readiness",
+        timeIn: "2026-09-29T09:12:00",
+        timeOut: "2026-09-29T12:09:00",
+        attendance: "present",
+        registeredAt: "2026-09-22T11:00:00",
+      },
     ],
     studentId: "2026-10452",
     activeSession: null,
@@ -85,7 +106,8 @@ function joinEvent(registration) {
 function upcomingRegistrations(state) {
   const attendedIds = new Set(state.history.map((entry) => entry.eventId).filter(Boolean));
   return state.registrations.filter(
-    (registration) => registration.status === "registered" && !attendedIds.has(registration.eventId),
+    (registration) =>
+      registration.status === "registered" && !attendedIds.has(registration.eventId),
   );
 }
 
@@ -156,7 +178,13 @@ export async function registerForEvent(user, eventId) {
     registration = { ...existing, status: "registered", qrToken: newToken(), registeredAt: now };
     registrations = state.registrations.map((r) => (r.id === existing.id ? registration : r));
   } else {
-    registration = { id: Date.now(), eventId, status: "registered", qrToken: newToken(), registeredAt: now };
+    registration = {
+      id: Date.now(),
+      eventId,
+      status: "registered",
+      qrToken: newToken(),
+      registeredAt: now,
+    };
     registrations = [registration, ...state.registrations];
   }
 

@@ -16,7 +16,8 @@ import { getDisplayStatus, statusMeta } from "../../utils/eventStatus";
 import { formatDay, formatEventWhen, percent } from "../../utils/format";
 import "./Organizer.css";
 
-const rateOf = (event) => (event.registered > 0 ? `${percent(event.checkedIn, event.registered)}%` : "—");
+const rateOf = (event) =>
+  event.registered > 0 ? `${percent(event.checkedIn, event.registered)}%` : "—";
 
 const columns = [
   { key: "title", header: "Event", bold: true },
@@ -67,13 +68,25 @@ export default function OrganizerDashboard() {
         eyebrow="Event operations"
         title="Organizer dashboard"
         subtitle="Create events, monitor registration, and manage attendance in one place."
-        actions={<Button onClick={() => navigate("/organizer/events/create")}>+ Create event</Button>}
+        actions={
+          <Button onClick={() => navigate("/organizer/events/create")}>+ Create event</Button>
+        }
       />
 
       <div className="grid-4">
         <StatCard value={stats.published} label="Published events" icon="▣" tone="primary" />
-        <StatCard value={stats.registrations.toLocaleString()} label="Registrations" icon="◷" tone="info" />
-        <StatCard value={stats.checkedIn.toLocaleString()} label="Checked in" icon="✓" tone="success" />
+        <StatCard
+          value={stats.registrations.toLocaleString()}
+          label="Registrations"
+          icon="◷"
+          tone="info"
+        />
+        <StatCard
+          value={stats.checkedIn.toLocaleString()}
+          label="Checked in"
+          icon="✓"
+          tone="success"
+        />
         <StatCard value={`${stats.showUpRate}%`} label="Show-up rate" icon="↗" tone="warning" />
       </div>
 
@@ -97,7 +110,9 @@ export default function OrganizerDashboard() {
               </div>
             </div>
           ) : (
-            <p className="empty-note">No attendance data yet. It appears once an event has started.</p>
+            <p className="empty-note">
+              No attendance data yet. It appears once an event has started.
+            </p>
           )}
         </Card>
 

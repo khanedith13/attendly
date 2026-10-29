@@ -71,7 +71,8 @@ export async function cancelEvent(user, id) {
   await delay();
   const event = ownEvent(user, id);
 
-  if (event.status !== "published") throw new ApiError("Only published events can be cancelled.", 409);
+  if (event.status !== "published")
+    throw new ApiError("Only published events can be cancelled.", 409);
   if (new Date(event.endsAt) < new Date()) {
     throw new ApiError("This event has already ended.", 409);
   }

@@ -44,7 +44,8 @@ export default function MyEvents() {
   if (loading) return <LoadingBlock />;
 
   const withStatus = data.map((event) => ({ event, display: getDisplayStatus(event) }));
-  const count = (...statuses) => withStatus.filter((item) => statuses.includes(item.display)).length;
+  const count = (...statuses) =>
+    withStatus.filter((item) => statuses.includes(item.display)).length;
 
   const query = search.trim().toLowerCase();
   const rows = withStatus
@@ -136,11 +137,18 @@ export default function MyEvents() {
         eyebrow="Event management"
         title="My events"
         subtitle="Edit, publish, and track every event you have created."
-        actions={<Button onClick={() => navigate("/organizer/events/create")}>+ Create event</Button>}
+        actions={
+          <Button onClick={() => navigate("/organizer/events/create")}>+ Create event</Button>
+        }
       />
 
       <div className="grid-4">
-        <StatCard value={count("upcoming", "live", "closed")} label="Published" icon="▣" tone="primary" />
+        <StatCard
+          value={count("upcoming", "live", "closed")}
+          label="Published"
+          icon="▣"
+          tone="primary"
+        />
         <StatCard value={count("draft")} label="Drafts" icon="✎" tone="warning" />
         <StatCard value={count("closed")} label="Closed" icon="✓" tone="success" />
         <StatCard value={count("cancelled")} label="Cancelled" icon="✕" tone="info" />
@@ -153,7 +161,11 @@ export default function MyEvents() {
           placeholder="Search event title or venue"
         />
         {filters.map((item) => (
-          <Chip key={item.value} active={filter === item.value} onClick={() => setFilter(item.value)}>
+          <Chip
+            key={item.value}
+            active={filter === item.value}
+            onClick={() => setFilter(item.value)}
+          >
             {item.label}
           </Chip>
         ))}

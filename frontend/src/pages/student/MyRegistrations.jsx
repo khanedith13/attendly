@@ -35,7 +35,11 @@ const attendanceLabel = { present: "Present", late: "Late", absent: "Absent" };
 const pastColumns = [
   { key: "event", header: "Event", bold: true },
   { key: "date", header: "Date", render: (row) => formatDate(row.timeIn) },
-  { key: "registered", header: "Registered on", render: (row) => formatShortDateTime(row.registeredAt) },
+  {
+    key: "registered",
+    header: "Registered on",
+    render: (row) => formatShortDateTime(row.registeredAt),
+  },
   {
     key: "attendance",
     header: "Attendance",
@@ -108,7 +112,10 @@ export default function MyRegistrations() {
     setBusy(true);
     try {
       await cancelRegistration(user, cancelTarget.id);
-      setMessage({ tone: "success", text: `Registration for ${cancelTarget.title} was cancelled.` });
+      setMessage({
+        tone: "success",
+        text: `Registration for ${cancelTarget.title} was cancelled.`,
+      });
       reload();
     } catch (error) {
       setMessage({ tone: "danger", text: error.message });
@@ -147,7 +154,11 @@ export default function MyRegistrations() {
 
       <div className="reg-filters">
         {filters.map((item) => (
-          <Chip key={item.value} active={filter === item.value} onClick={() => setFilter(item.value)}>
+          <Chip
+            key={item.value}
+            active={filter === item.value}
+            onClick={() => setFilter(item.value)}
+          >
             {item.label}
           </Chip>
         ))}

@@ -9,3 +9,13 @@
   font-size: 12px;
   font-weight: 700;
 }
+
+.avatar {
+  overflow: hidden;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

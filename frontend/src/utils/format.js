@@ -37,3 +37,10 @@ export function formatEventWhen(iso) {
   const date = new Date(iso).toLocaleDateString("en-US", { month: "short", day: "2-digit" });
   return `${date} • ${formatTime(iso)}`;
 }
+
+export function formatDaysAgo(iso) {
+  if (!iso) return "never";
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  if (days <= 0) return "today";
+  return days === 1 ? "1 day ago" : `${days} days ago`;
+}

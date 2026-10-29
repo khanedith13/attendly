@@ -4,6 +4,7 @@ import "./Topbar.css";
 
 export default function Topbar({ roleLabel, pageLabel, variant, initials, badge }) {
   function renderExtra() {
+    if (badge?.hidden) return null;
     if (badge?.text) return <Pill tone={badge.tone}>{badge.text}</Pill>;
     if (badge?.icon) {
       return (

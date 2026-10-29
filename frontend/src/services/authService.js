@@ -22,7 +22,17 @@ const seedUsers = [
   },
 ];
 
-const allUsers = () => [...seedUsers, ...storage.getMockUsers()];
+const OVERRIDES_KEY = "attendly_user_overrides";
+const readOverrides = () => storage.getJSON(OVERRIDES_KEY, {});
+
+// Edits made on My Account (name, password) are layered on top of the base users.
+const allUsers = () => {
+  const overrides = readOverrides();
+  return [...seedUsers, ...storage.getMockUsers()].map((user) => ({
+    ...user,
+    ...overrides[user.id],
+  }));
+};
 
 function publicUser({ id, name, email, role }) {
   return { id, name, email, role };
@@ -79,4 +89,30 @@ export async function logout() {
 export async function getCurrentUser() {
   const { token, user } = storage.getSession();
   return token ? user : null;
+}
+
+export async function updateProfile(userId, { name }) {
+  const overrides = readOverrides();
+  storage.setJSON(OVERRIDES_KEY, { ...overrides, [userId]: { ...overrides[userId], name } });
+
+  const session = storage.getSession();
+  if (session.user?.id === userId) {
+    storage.setSession({ ...session, user: { ...session.user, name } });
+  }
+}
+
+export async function changePassword(userId, { currentPassword, newPassword }) {
+  const found = allUsers().find((user) => user.id === userId);
+
+  if (!found || found.password !== currentPassword) {
+    throw new ApiError("Validation failed.", 422, {
+      currentPassword: ["Current password is incorrect."],
+    });
+  }
+
+  const overrides = readOverrides();
+  storage.setJSON(OVERRIDES_KEY, {
+    ...overrides,
+    [userId]: { ...overrides[userId], password: newPassword },
+  });
 }

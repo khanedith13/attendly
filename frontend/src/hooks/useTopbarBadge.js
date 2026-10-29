@@ -20,3 +20,13 @@ export function useTopbarIcon(icon) {
     return () => setBadge(null);
   }, [setBadge, icon]);
 }
+
+// Hide the bell/pill so only the avatar shows.
+export function useTopbarNone() {
+  const { setBadge } = useOutletContext();
+
+  useEffect(() => {
+    setBadge({ hidden: true });
+    return () => setBadge(null);
+  }, [setBadge]);
+}

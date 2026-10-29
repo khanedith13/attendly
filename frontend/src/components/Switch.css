@@ -1,0 +1,29 @@
+.switch {
+  display: flex;
+  flex: none;
+  align-items: center;
+  width: 40px;
+  height: 24px;
+  padding: 3px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: #cbd5e1;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.switch--on {
+  background: var(--primary);
+}
+
+.switch__knob {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s;
+}
+
+.switch--on .switch__knob {
+  transform: translateX(16px);
+}

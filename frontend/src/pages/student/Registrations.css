@@ -1,0 +1,41 @@
+.reg-filters {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .reg-card__cover {
+    margin-bottom: 14px;
+    overflow: hidden;
+    border-radius: 12px;
+  }
+  
+  .reg-card__title {
+    margin: 10px 0 4px;
+    font-size: 14px;
+    color: var(--text);
+  }
+  
+  .reg-card__meta {
+    margin: 0 0 12px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+  
+  .reg-card__actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .reg-confirm {
+    margin: 0 0 18px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+  
+  .reg-confirm__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }

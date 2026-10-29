@@ -32,3 +32,8 @@ export function formatDuration(ms) {
   const minutes = totalMinutes % 60;
   return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 }
+
+export function formatEventWhen(iso) {
+  const date = new Date(iso).toLocaleDateString("en-US", { month: "short", day: "2-digit" });
+  return `${date} • ${formatTime(iso)}`;
+}

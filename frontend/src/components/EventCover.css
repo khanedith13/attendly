@@ -16,10 +16,14 @@
   box-shadow: 0 0 0 28px rgba(255, 255, 255, 0.05);
 }
 
-.event-cover--blue {
-  background: linear-gradient(135deg, #0284c7, #4f46e5);
+.event-cover--green {
+  background: linear-gradient(135deg, #047857, #10b981);
 }
 
-.event-cover--green {
-  background: linear-gradient(135deg, #059669, #0284c7);
+.event-cover--blue {
+  background: linear-gradient(135deg, #0369a1, #0ea5e9);
+}
+
+.event-cover--amber {
+  background: linear-gradient(135deg, #b45309, #f59e0b);
 }

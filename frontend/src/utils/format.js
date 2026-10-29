@@ -44,3 +44,11 @@ export function formatDaysAgo(iso) {
   if (days <= 0) return "today";
   return days === 1 ? "1 day ago" : `${days} days ago`;
 }
+
+export function formatDay(iso) {
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "2-digit" });
+}
+
+export function percent(part, whole) {
+  return whole > 0 ? Math.round((part / whole) * 100) : 0;
+}

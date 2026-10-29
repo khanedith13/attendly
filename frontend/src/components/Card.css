@@ -6,8 +6,16 @@
   box-shadow: var(--shadow-card);
 }
 
-.card__title {
+.card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 14px;
+}
+
+.card__title {
+  margin-bottom: 0;
   font-size: 14px;
   font-weight: 700;
   color: var(--text);

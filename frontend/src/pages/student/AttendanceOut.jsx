@@ -109,7 +109,11 @@ export default function AttendanceOut() {
                 </div>
               </div>
 
-              <form className="attendance__form attendance__form--spaced" onSubmit={handleSubmit} noValidate>
+              <form
+                className="attendance__form attendance__form--spaced"
+                onSubmit={handleSubmit}
+                noValidate
+              >
                 <FormField
                   ref={studentIdRef}
                   id="studentId"
@@ -124,7 +128,9 @@ export default function AttendanceOut() {
                 <Button type="submit" size="lg" className="btn--block" disabled={submitting}>
                   {submitting ? "Confirming..." : "Confirm attendance out"}
                 </Button>
-                <p className="attendance__footnote">This will close your active attendance session.</p>
+                <p className="attendance__footnote">
+                  This will close your active attendance session.
+                </p>
               </form>
             </>
           ) : (

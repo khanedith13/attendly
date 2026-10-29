@@ -28,7 +28,10 @@ const readOverrides = () => storage.getJSON(OVERRIDES_KEY, {});
 // Edits made on My Account (name, password) are layered on top of the base users.
 const allUsers = () => {
   const overrides = readOverrides();
-  return [...seedUsers, ...storage.getMockUsers()].map((user) => ({ ...user, ...overrides[user.id] }));
+  return [...seedUsers, ...storage.getMockUsers()].map((user) => ({
+    ...user,
+    ...overrides[user.id],
+  }));
 };
 
 function publicUser({ id, name, email, role }) {

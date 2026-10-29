@@ -210,7 +210,10 @@ export default function MyAccount() {
             <div className="account-divider" />
 
             <h3 className="account-title">Notifications</h3>
-            <SettingRow title="Event registration reminders" description="Remind me before registered events">
+            <SettingRow
+              title="Event registration reminders"
+              description="Remind me before registered events"
+            >
               <Switch
                 checked={notifications.reminders}
                 label="Event registration reminders"

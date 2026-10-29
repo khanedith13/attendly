@@ -1,3 +1,4 @@
+import { ApiError } from "../api/ApiError";
 import { storage } from "../utils/storage";
 
 const DEMO_STUDENT_ID = 2; // the demo student in authService
@@ -106,4 +107,95 @@ export async function getDashboard(userId) {
     .slice(0, 5);
 
   return { stats: state.stats, nextEvent, recent };
+}
+
+function lastCheckInOf(state) {
+  const items = state.history.map((entry) => ({ event: entry.event, at: entry.timeIn }));
+  if (state.activeSession) {
+    items.push({ event: state.activeSession.eventTitle, at: state.activeSession.checkedInAt });
+  }
+  return items.sort((a, b) => new Date(b.at) - new Date(a.at))[0] ?? null;
+}
+
+export async function getAttendanceInData(user) {
+  await delay();
+  const state = loadState(user.id);
+  return {
+    events: state.events,
+    studentId: state.studentId,
+    activeSession: state.activeSession,
+    lastCheckIn: lastCheckInOf(state),
+  };
+}
+
+export async function getAttendanceOutData(user) {
+  await delay();
+  const state = loadState(user.id);
+  return { activeSession: state.activeSession, studentId: state.studentId };
+}
+
+export async function checkIn(user, { studentId, email, eventId }) {
+  await delay();
+  const state = loadState(user.id);
+
+  if (email !== user.email) {
+    throw new ApiError("Validation failed.", 422, {
+      email: ["Email must match your registered profile."],
+    });
+  }
+
+  const event = state.events.find((item) => item.id === eventId);
+  if (!event) {
+    throw new ApiError("Validation failed.", 422, {
+      eventId: ["Select one of your registered events."],
+    });
+  }
+
+  if (state.activeSession) {
+    throw new ApiError(
+      `You are already checked in to ${state.activeSession.eventTitle}. Check out first.`,
+      409,
+    );
+  }
+
+  const session = {
+    id: Date.now(),
+    eventId: event.id,
+    eventTitle: event.title,
+    studentId,
+    checkedInAt: new Date().toISOString(),
+  };
+  saveState(user.id, { ...state, studentId, activeSession: session });
+  return session;
+}
+
+export async function checkOut(user, { studentId }) {
+  await delay();
+  const state = loadState(user.id);
+  const session = state.activeSession;
+
+  if (!session) {
+    throw new ApiError("You are not checked in to any event.", 409);
+  }
+
+  if (session.studentId !== studentId) {
+    throw new ApiError("Validation failed.", 422, {
+      studentId: ["Student ID does not match your active session."],
+    });
+  }
+
+  const entry = {
+    id: session.id,
+    event: session.eventTitle,
+    timeIn: session.checkedInAt,
+    timeOut: new Date().toISOString(),
+  };
+
+  saveState(user.id, {
+    ...state,
+    history: [entry, ...state.history],
+    stats: { ...state.stats, attended: state.stats.attended + 1 },
+    activeSession: null,
+  });
+  return entry;
 }

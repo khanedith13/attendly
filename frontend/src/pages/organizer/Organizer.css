@@ -70,3 +70,22 @@
   .row-none {
     color: var(--text-subtle);
   }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .confirm-text {
+    margin: 0 0 18px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+  
+  .confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }

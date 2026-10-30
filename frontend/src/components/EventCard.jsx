@@ -1,4 +1,4 @@
-import { formatEventWhen } from "../utils/format";
+import { formatEventWhen, formatVenue } from "../utils/format";
 import Button from "./Button";
 import EventCover from "./EventCover";
 import Pill from "./Pill";

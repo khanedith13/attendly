@@ -19,7 +19,7 @@ import {
   getMyRegistrations,
   registerForEvent,
 } from "../../services/studentService";
-import { formatDate, formatEventWhen, formatShortDateTime } from "../../utils/format";
+import { formatDate, formatEventWhen, formatShortDateTime, formatVenue } from "../../utils/format";
 import "./Registrations.css";
 
 const filters = [

@@ -11,7 +11,7 @@ import StatCard from "../../components/StatCard";
 import { useAsyncData } from "../../hooks/useAsyncData";
 import { useAuth } from "../../hooks/useAuth";
 import { getDashboard } from "../../services/studentService";
-import { formatDate, formatTime, getGreeting, isToday } from "../../utils/format";
+import { formatDate, formatTime, formatVenue, getGreeting, isToday } from "../../utils/format";
 import "./StudentDashboard.css";
 
 const columns = [

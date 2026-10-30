@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
 import Chip from "../../components/Chip";
@@ -29,13 +29,16 @@ const filters = [
 
 export default function MyEvents() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const load = useCallback(() => listMyEvents(user), [user]);
   const { data, loading, reload } = useAsyncData(load);
 
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
-  const [message, setMessage] = useState(null);
+  const [message, setMessage] = useState(
+    location.state?.notice ? { tone: "success", text: location.state.notice } : null,
+  );
   const [busy, setBusy] = useState(false);
   const [cancelTarget, setCancelTarget] = useState(null);
 

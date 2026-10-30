@@ -1,24 +1,24 @@
 .tile {
-    padding: 14px 16px;
-    border: 1px solid var(--border-soft);
-    border-radius: 14px;
-    background: var(--bg);
-  }
-  
-  .tile__top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  
-  .tile__title {
-    font-size: 11px;
-    color: var(--text-muted);
-  }
-  
-  .tile__desc {
-    margin: 10px 0 0;
-    font-size: 10px;
-    color: var(--text-subtle);
-  }
+  padding: 14px 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+.tile__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tile__title {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.tile__desc {
+  margin: 10px 0 0;
+  font-size: 10px;
+  color: var(--text-subtle);
+}

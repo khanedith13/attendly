@@ -294,15 +294,25 @@ export default function CreateEvent() {
           </p>
 
           <div className="qr-grid">
-            <QrCard label="Attendance in" value={`attendly:in:${codes.in}`} filename="attendance-in-qr.png" />
-            <QrCard label="Attendance out" value={`attendly:out:${codes.out}`} filename="attendance-out-qr.png" />
+            <QrCard
+              label="Attendance in"
+              value={`attendly:in:${codes.in}`}
+              filename="attendance-in-qr.png"
+            />
+            <QrCard
+              label="Attendance out"
+              value={`attendly:out:${codes.out}`}
+              filename="attendance-out-qr.png"
+            />
           </div>
 
           <div className="qr-refresh">
             <Button
               size="sm"
               variant="outline"
-              onClick={() => setRefreshedCodes({ in: crypto.randomUUID(), out: crypto.randomUUID() })}
+              onClick={() =>
+                setRefreshedCodes({ in: crypto.randomUUID(), out: crypto.randomUUID() })
+              }
             >
               Refresh codes
             </Button>

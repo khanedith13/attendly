@@ -12,7 +12,11 @@ export default function TextareaField({ label, id, hint, error, ...textareaProps
         aria-invalid={Boolean(error)}
         {...textareaProps}
       />
-      {error ? <p className="field__error">{error}</p> : hint && <p className="field__hint">{hint}</p>}
+      {error ? (
+        <p className="field__error">{error}</p>
+      ) : (
+        hint && <p className="field__hint">{hint}</p>
+      )}
     </div>
   );
 }

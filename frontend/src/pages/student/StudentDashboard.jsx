@@ -59,9 +59,7 @@ function NextEvent({ event, onBrowse }) {
             {when} • {formatTime(event.startsAt)}
           </div>
           <h4 className="next-event__title">{event.title}</h4>
-          <div className="next-event__meta">
-            {formatVenue(event)}
-          </div>
+          <div className="next-event__meta">{formatVenue(event)}</div>
         </div>
         <div className="next-event__foot">
           <Pill tone="success">Registered</Pill>

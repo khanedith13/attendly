@@ -28,6 +28,7 @@ export default function Topbar({ roleLabel, pageLabel, variant, initials, badge,
       </div>
 
       <div className="topbar__actions">
+        <div ref={slotRef} className="topbar__slot" />
         {renderExtra()}
         <Avatar initials={initials} />
       </div>

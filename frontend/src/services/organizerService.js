@@ -82,3 +82,72 @@ export async function cancelEvent(user, id) {
   }
   updateCatalogEvent(id, { status: "cancelled" });
 }
+
+// The fields that come from the form, in the shape the store keeps.
+function fieldsFromForm(data) {
+  return {
+    title: data.title.trim(),
+    description: data.description.trim(),
+    venue: data.venue.trim(),
+    campus: "",
+    category: data.category,
+    capacity: Number(data.capacity),
+    startsAt: toIso(data.date, data.startTime),
+    endsAt: toIso(data.date, data.endTime),
+    requireSchoolGmail: data.requireSchoolGmail,
+    sendConfirmation: data.sendConfirmation,
+    qrIn: data.qrIn,
+    qrOut: data.qrOut,
+    tone: toneForCategory[data.category],
+  };
+}
+
+function assertValid(errors) {
+  if (Object.keys(errors).length > 0) {
+    throw new ApiError("Validation failed.", 422, toApiErrors(errors));
+  }
+}
+
+export async function getEventForEdit(user, id) {
+  await delay();
+  return ownEvent(user, id);
+}
+
+export async function createEvent(user, data, { publish = false } = {}) {
+  await delay();
+  assertValid(validateEvent(data, { publish }));
+
+  const event = {
+    ...fieldsFromForm(data),
+    id: Date.now(),
+    status: publish ? "published" : "draft",
+    ownerId: user.id,
+    organizer: user.name,
+    registered: 0,
+    checkedIn: 0,
+    createdAt: new Date().toISOString(),
+  };
+  addCatalogEvent(event);
+  return event;
+}
+
+export async function updateEvent(user, id, data, { publish = false } = {}) {
+  await delay();
+  const event = ownEvent(user, id);
+
+  if (event.status === "cancelled" || new Date(event.endsAt) < new Date()) {
+    throw new ApiError("This event can no longer be edited.", 409);
+  }
+
+  assertValid(
+    validateEvent(data, {
+      publish: publish || event.status === "published",
+      minCapacity: event.registered,
+    }),
+  );
+
+  updateCatalogEvent(id, {
+    ...fieldsFromForm(data),
+    status: publish && event.status === "draft" ? "published" : event.status,
+  });
+}

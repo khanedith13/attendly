@@ -60,7 +60,7 @@ function NextEvent({ event, onBrowse }) {
           </div>
           <h4 className="next-event__title">{event.title}</h4>
           <div className="next-event__meta">
-            {event.venue} • {event.campus}
+            {formatVenue(event)}
           </div>
         </div>
         <div className="next-event__foot">

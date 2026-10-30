@@ -45,3 +45,7 @@
   border-radius: 50%;
   background: #ef4444;
 }
+
+.topbar__slot {
+  display: contents;
+}

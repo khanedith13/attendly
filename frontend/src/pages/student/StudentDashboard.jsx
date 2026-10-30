@@ -11,7 +11,7 @@ import StatCard from "../../components/StatCard";
 import { useAsyncData } from "../../hooks/useAsyncData";
 import { useAuth } from "../../hooks/useAuth";
 import { getDashboard } from "../../services/studentService";
-import { formatDate, formatTime, getGreeting, isToday } from "../../utils/format";
+import { formatDate, formatTime, formatVenue, getGreeting, isToday } from "../../utils/format";
 import "./StudentDashboard.css";
 
 const columns = [
@@ -59,9 +59,7 @@ function NextEvent({ event, onBrowse }) {
             {when} • {formatTime(event.startsAt)}
           </div>
           <h4 className="next-event__title">{event.title}</h4>
-          <div className="next-event__meta">
-            {event.venue} • {event.campus}
-          </div>
+          <div className="next-event__meta">{formatVenue(event)}</div>
         </div>
         <div className="next-event__foot">
           <Pill tone="success">Registered</Pill>

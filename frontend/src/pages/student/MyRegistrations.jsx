@@ -19,7 +19,7 @@ import {
   getMyRegistrations,
   registerForEvent,
 } from "../../services/studentService";
-import { formatDate, formatEventWhen, formatShortDateTime } from "../../utils/format";
+import { formatDate, formatEventWhen, formatShortDateTime, formatVenue } from "../../utils/format";
 import "./Registrations.css";
 
 const filters = [
@@ -60,7 +60,7 @@ function RegistrationCard({ item, cancelled, onTicket, onCancel, onRegisterAgain
       <p className="reg-card__meta">
         {formatEventWhen(item.startsAt)}
         <br />
-        {item.venue} • {item.campus}
+        {formatVenue(item)}
       </p>
       <div className="reg-card__actions">
         {cancelled ? (

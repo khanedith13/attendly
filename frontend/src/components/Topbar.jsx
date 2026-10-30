@@ -2,7 +2,7 @@ import Avatar from "./Avatar";
 import Pill from "./Pill";
 import "./Topbar.css";
 
-export default function Topbar({ roleLabel, pageLabel, variant, initials, badge }) {
+export default function Topbar({ roleLabel, pageLabel, variant, initials, badge, slotRef }) {
   function renderExtra() {
     if (badge?.hidden) return null;
     if (badge?.text) return <Pill tone={badge.tone}>{badge.text}</Pill>;
@@ -28,6 +28,7 @@ export default function Topbar({ roleLabel, pageLabel, variant, initials, badge 
       </div>
 
       <div className="topbar__actions">
+        <div ref={slotRef} className="topbar__slot" />
         {renderExtra()}
         <Avatar initials={initials} />
       </div>

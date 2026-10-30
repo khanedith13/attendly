@@ -52,3 +52,7 @@ export function formatDay(iso) {
 export function percent(part, whole) {
   return whole > 0 ? Math.round((part / whole) * 100) : 0;
 }
+
+export function formatVenue(event) {
+  return [event.venue, event.campus].filter(Boolean).join(" • ");
+}

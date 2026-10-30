@@ -1,4 +1,4 @@
-import { formatEventWhen } from "../utils/format";
+import { formatEventWhen, formatVenue } from "../utils/format";
 import Button from "./Button";
 import EventCover from "./EventCover";
 import Pill from "./Pill";
@@ -14,9 +14,7 @@ export default function EventCard({ event, onRegister, busy }) {
       <div className="event-card__body">
         <div className="event-card__when">{formatEventWhen(event.startsAt)}</div>
         <h3 className="event-card__title">{event.title}</h3>
-        <div className="event-card__meta">
-          {event.venue} • {event.campus}
-        </div>
+        <div className="event-card__meta">{formatVenue(event)}</div>
 
         <div className="event-card__foot">
           <span>{event.capacity} seats</span>

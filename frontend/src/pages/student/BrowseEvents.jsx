@@ -11,9 +11,10 @@ import { useAsyncData } from "../../hooks/useAsyncData";
 import { useAuth } from "../../hooks/useAuth";
 import { useTopbarIcon } from "../../hooks/useTopbarBadge";
 import { listEvents, registerForEvent } from "../../services/studentService";
+import { eventCategories } from "../../config/events";
 import "./Browse.css";
 
-const categories = ["All", "Technology", "Leadership", "Career", "Community"];
+const categories = ["All", ...eventCategories];
 
 export default function BrowseEvents() {
   const navigate = useNavigate();

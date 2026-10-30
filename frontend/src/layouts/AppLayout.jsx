@@ -11,6 +11,7 @@ export default function AppLayout({ role }) {
   const { pathname } = useLocation();
   const { user } = useAuth();
   const [badge, setBadge] = useState(null);
+  const [slot, setSlot] = useState(null);
   const config = roleConfig[role];
 
   const profile = {
@@ -36,9 +37,10 @@ export default function AppLayout({ role }) {
           variant={config.topbar}
           initials={profile.initials}
           badge={badge}
+          slotRef={setSlot}
         />
         <main className="app__content">
-          <Outlet context={{ setBadge }} />
+          <Outlet context={{ setBadge, slot }} />
         </main>
       </div>
     </div>

@@ -60,7 +60,7 @@ function RegistrationCard({ item, cancelled, onTicket, onCancel, onRegisterAgain
       <p className="reg-card__meta">
         {formatEventWhen(item.startsAt)}
         <br />
-        {item.venue} • {item.campus}
+        {formatVenue(item)}
       </p>
       <div className="reg-card__actions">
         {cancelled ? (

@@ -15,7 +15,7 @@ export default function EventCard({ event, onRegister, busy }) {
         <div className="event-card__when">{formatEventWhen(event.startsAt)}</div>
         <h3 className="event-card__title">{event.title}</h3>
         <div className="event-card__meta">
-          {event.venue} • {event.campus}
+          {formatVenue(event)}
         </div>
 
         <div className="event-card__foot">

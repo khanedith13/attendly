@@ -1,3 +1,4 @@
+import { syncProfile } from "./roster";
 import { dayAt } from "./catalog";
 import * as authService from "./authService";
 import { loadState, saveState } from "./studentService";
@@ -34,6 +35,7 @@ export async function saveAccount(user, { name, studentId, course, notifications
     studentId,
     profile: { ...profileOf(state, user.id), course, notifications },
   });
+  syncProfile(user.id, { name, studentId, course });
 }
 
 export async function updatePassword(user, { currentPassword, newPassword }) {

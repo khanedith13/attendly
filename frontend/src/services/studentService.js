@@ -1,3 +1,4 @@
+import { cancelRosterRegistration, markCheckIn, markCheckOut, upsertRegistration } from "./roster";
 import { ApiError } from "../api/ApiError";
 import { storage } from "../utils/storage";
 import { adjustCounts, getCatalog, getCatalogEvent } from "./catalog";
@@ -9,6 +10,8 @@ const stateKey = (userId) => `attendly_student_v2_${userId}`;
 const newToken = () => crypto.randomUUID();
 const byStart = (a, b) => new Date(a.startsAt) - new Date(b.startsAt);
 const isOpen = (event) => event.status === "published";
+const courseOf = (state, userId) =>
+  state.profile?.course ?? (userId === DEMO_STUDENT_ID ? "BS Information Technology" : "");
 
 function startOfToday() {
   const date = new Date();
@@ -189,6 +192,12 @@ export async function registerForEvent(user, eventId) {
   }
 
   saveState(user.id, { ...state, registrations });
+  upsertRegistration({
+    eventId,
+    user,
+    studentId: state.studentId,
+    course: courseOf(state, user.id),
+  });
   adjustCounts(eventId, { registered: 1 });
   return registration;
 }
@@ -216,6 +225,7 @@ export async function cancelRegistration(user, registrationId) {
       r.id === registrationId ? { ...r, status: "cancelled" } : r,
     ),
   });
+  cancelRosterRegistration(registration.eventId, user.id);
   adjustCounts(registration.eventId, { registered: -1 });
 }
 
@@ -318,6 +328,7 @@ export async function checkIn(user, { studentId, email, eventId }) {
     registeredAt: registration.registeredAt,
   };
   saveState(user.id, { ...state, studentId, activeSession: session });
+  markCheckIn(event.id, user.id, checkedInAt);
   adjustCounts(event.id, { checkedIn: 1 });
   return session;
 }
@@ -345,6 +356,7 @@ export async function checkOut(user, { studentId }) {
     registeredAt: session.registeredAt,
   };
 
+  markCheckOut(session.eventId, user.id, entry.timeOut);
   saveState(user.id, {
     ...state,
     history: [entry, ...state.history],

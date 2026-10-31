@@ -5,7 +5,15 @@ const MAX_ENTRIES = 500;
 const MOCK_IP = "127.0.0.1";
 
 function seed() {
-  const entry = (minutesAgo, actor, role, action, target, result = "success", ip = "10.0.4.18") => ({
+  const entry = (
+    minutesAgo,
+    actor,
+    role,
+    action,
+    target,
+    result = "success",
+    ip = "10.0.4.18",
+  ) => ({
     at: new Date(Date.now() - minutesAgo * 60000).toISOString(),
     actor,
     role,
@@ -17,11 +25,27 @@ function seed() {
 
   return [
     entry(30, "Admin", "admin", "Approved organizer", "Campus Events Team"),
-    entry(75, "Events Team", "organizer", "Published event", "AI & Future Skills Summit", "success", "10.0.7.55"),
+    entry(
+      75,
+      "Events Team",
+      "organizer",
+      "Published event",
+      "AI & Future Skills Summit",
+      "success",
+      "10.0.7.55",
+    ),
     entry(140, "Unknown", "—", "Login attempt", "admin@school.edu.ph", "failed", "203.0.113.9"),
     entry(300, "Admin", "admin", "Changed late grace period", "Settings"),
     entry(1500, "Paolo Reyes", "admin", "Suspended organizer", "Open Mic Collective"),
-    entry(1700, "Events Team", "organizer", "Published event", "Toastmasters Leadership Lab", "success", "10.0.7.55"),
+    entry(
+      1700,
+      "Events Team",
+      "organizer",
+      "Published event",
+      "Toastmasters Leadership Lab",
+      "success",
+      "10.0.7.55",
+    ),
     entry(2900, "Admin", "admin", "Changed user role", "john.santos@school.edu.ph"),
   ].map((item, index) => ({ id: index + 1, ...item }));
 }

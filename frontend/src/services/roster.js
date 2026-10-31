@@ -14,7 +14,6 @@ const DEMO_STUDENT = {
   course: "BS Information Technology",
 };
 
-
 // Made-up but repeatable students, so the demo looks the same every time.
 function fakeStudent(eventId, i) {
   const first = FIRST[(i * 7 + eventId) % FIRST.length];

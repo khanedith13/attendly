@@ -64,7 +64,9 @@ export default function AdminUsers() {
     .filter((user) => filter === "all" || user.role === filter)
     .filter(
       (user) =>
-        !query || user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query),
+        !query ||
+        user.name.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query),
     );
 
   const pages = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
@@ -133,7 +135,9 @@ export default function AdminUsers() {
     {
       key: "status",
       header: "Status",
-      render: (row) => <Pill tone={statusMeta[row.status].tone}>{statusMeta[row.status].label}</Pill>,
+      render: (row) => (
+        <Pill tone={statusMeta[row.status].tone}>{statusMeta[row.status].label}</Pill>
+      ),
     },
     {
       key: "actions",
@@ -142,7 +146,11 @@ export default function AdminUsers() {
         if (row.id === admin.id) return <span className="row-none">You</span>;
         return (
           <div className="row-actions">
-            <Button size="sm" variant="outline" onClick={() => setForm({ mode: "edit", user: row })}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setForm({ mode: "edit", user: row })}
+            >
               Edit
             </Button>
             {row.status === "suspended" ? (
@@ -177,10 +185,30 @@ export default function AdminUsers() {
       />
 
       <div className="grid-4">
-        <StatCard value={data.length.toLocaleString()} label="Total users" icon="◉" tone="primary" />
-        <StatCard value={countOf("student").toLocaleString()} label="Students" icon="◯" tone="info" />
-        <StatCard value={countOf("organizer").toLocaleString()} label="Organizers" icon="✦" tone="warning" />
-        <StatCard value={countOf("admin").toLocaleString()} label="Admins" icon="⚙" tone="success" />
+        <StatCard
+          value={data.length.toLocaleString()}
+          label="Total users"
+          icon="◉"
+          tone="primary"
+        />
+        <StatCard
+          value={countOf("student").toLocaleString()}
+          label="Students"
+          icon="◯"
+          tone="info"
+        />
+        <StatCard
+          value={countOf("organizer").toLocaleString()}
+          label="Organizers"
+          icon="✦"
+          tone="warning"
+        />
+        <StatCard
+          value={countOf("admin").toLocaleString()}
+          label="Admins"
+          icon="⚙"
+          tone="success"
+        />
       </div>
 
       <div className="toolbar">
@@ -220,14 +248,19 @@ export default function AdminUsers() {
       </Card>
 
       {form && (
-        <UserFormModal mode={form.mode} user={form.user} onSubmit={handleSubmit} onClose={closeForm} />
+        <UserFormModal
+          mode={form.mode}
+          user={form.user}
+          onSubmit={handleSubmit}
+          onClose={closeForm}
+        />
       )}
 
       {suspendTarget && (
         <Modal title="Suspend user?" onClose={closeSuspend}>
           <p className="confirm-text">
-            <b>{suspendTarget.name}</b> will no longer be able to log in. You can activate the account
-            again at any time.
+            <b>{suspendTarget.name}</b> will no longer be able to log in. You can activate the
+            account again at any time.
           </p>
           <div className="confirm-actions">
             <Button variant="outline" onClick={closeSuspend}>

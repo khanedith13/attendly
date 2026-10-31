@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ActionBanner from "../../components/ActionBanner";
 import Button from "../../components/Button";
@@ -63,13 +62,17 @@ export default function AdminDashboard() {
   }
 
   function generateReport() {
-    downloadCsv("platform-report.csv", ["Metric", "Value"], [
-      ["Total users", stats.users],
-      ["Organizers", stats.organizers],
-      ["Active events", stats.activeEvents],
-      ...roles.map((row) => [`${roleNames[row.role]} (active)`, row.active]),
-      ...roles.map((row) => [`${roleNames[row.role]} (pending)`, row.pending]),
-    ]);
+    downloadCsv(
+      "platform-report.csv",
+      ["Metric", "Value"],
+      [
+        ["Total users", stats.users],
+        ["Organizers", stats.organizers],
+        ["Active events", stats.activeEvents],
+        ...roles.map((row) => [`${roleNames[row.role]} (active)`, row.active]),
+        ...roles.map((row) => [`${roleNames[row.role]} (pending)`, row.pending]),
+      ],
+    );
   }
 
   return (
@@ -95,7 +98,12 @@ export default function AdminDashboard() {
       )}
 
       <div className="grid-4">
-        <StatCard value={stats.users.toLocaleString()} label="Total users" icon="◉" tone="primary" />
+        <StatCard
+          value={stats.users.toLocaleString()}
+          label="Total users"
+          icon="◉"
+          tone="primary"
+        />
         <StatCard value={stats.organizers} label="Organizers" icon="✦" tone="info" />
         <StatCard value={stats.activeEvents} label="Active events" icon="▣" tone="success" />
         <StatCard value={stats.uptime} label="Platform uptime" icon="⌁" tone="warning" />

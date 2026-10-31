@@ -120,7 +120,12 @@ export async function updateUser(admin, id, changes) {
 
   const activeAdmins = users.filter((u) => u.role === "admin" && u.status === "active");
   const losesAdmin = next.role !== "admin" || next.status !== "active";
-  if (target.role === "admin" && target.status === "active" && losesAdmin && activeAdmins.length <= 1) {
+  if (
+    target.role === "admin" &&
+    target.status === "active" &&
+    losesAdmin &&
+    activeAdmins.length <= 1
+  ) {
     throw new ApiError("At least one active admin is required.", 409);
   }
 

@@ -9,26 +9,108 @@ const clean = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, "");
 // Fake organizer accounts (they cannot log in). `org` holds the numbers shown
 // on the admin Organizers screen.
 const ORGS = [
-  { name: "Computer Science Society", phone: "+63 918 555 0142", status: "active", events: 6, registrations: 940 },
-  { name: "Business Student Council", phone: "+63 919 777 0231", status: "pending", events: 0, registrations: 0 },
-  { name: "Photography Club", phone: "+63 915 222 0178", status: "pending", events: 0, registrations: 0 },
-  { name: "Open Mic Collective", phone: "+63 917 303 0099", status: "suspended", events: 2, registrations: 120 },
-  { name: "Toastmasters Club", phone: "+63 916 410 7788", status: "active", events: 4, registrations: 512 },
-  { name: "Student Council", phone: "+63 917 220 4410", status: "active", events: 9, registrations: 1430 },
-  { name: "Career Services", phone: "+63 918 600 1200", status: "pending", events: 0, registrations: 0 },
+  {
+    name: "Computer Science Society",
+    phone: "+63 918 555 0142",
+    status: "active",
+    events: 6,
+    registrations: 940,
+  },
+  {
+    name: "Business Student Council",
+    phone: "+63 919 777 0231",
+    status: "pending",
+    events: 0,
+    registrations: 0,
+  },
+  {
+    name: "Photography Club",
+    phone: "+63 915 222 0178",
+    status: "pending",
+    events: 0,
+    registrations: 0,
+  },
+  {
+    name: "Open Mic Collective",
+    phone: "+63 917 303 0099",
+    status: "suspended",
+    events: 2,
+    registrations: 120,
+  },
+  {
+    name: "Toastmasters Club",
+    phone: "+63 916 410 7788",
+    status: "active",
+    events: 4,
+    registrations: 512,
+  },
+  {
+    name: "Student Council",
+    phone: "+63 917 220 4410",
+    status: "active",
+    events: 9,
+    registrations: 1430,
+  },
+  {
+    name: "Career Services",
+    phone: "+63 918 600 1200",
+    status: "pending",
+    events: 0,
+    registrations: 0,
+  },
 ];
 
 function seed() {
   // The three demo accounts you can log in with.
   const demo = [
-    { id: 1, name: "Admin", email: "admin@school.edu.ph", password: "password123", role: "admin", status: "active", joinedAt: ago(120) },
-    { id: 2, name: "Delfin Octobre", email: "student@school.edu.ph", password: "password123", role: "student", status: "active", joinedAt: ago(60) },
-    { id: 3, name: "Events Team", email: "organizer@school.edu.ph", password: "password123", role: "organizer", status: "active", joinedAt: ago(90) },
+    {
+      id: 1,
+      name: "Admin",
+      email: "admin@school.edu.ph",
+      password: "password123",
+      role: "admin",
+      status: "active",
+      joinedAt: ago(120),
+    },
+    {
+      id: 2,
+      name: "Delfin Octobre",
+      email: "student@school.edu.ph",
+      password: "password123",
+      role: "student",
+      status: "active",
+      joinedAt: ago(60),
+    },
+    {
+      id: 3,
+      name: "Events Team",
+      email: "organizer@school.edu.ph",
+      password: "password123",
+      role: "organizer",
+      status: "active",
+      joinedAt: ago(90),
+    },
   ];
 
   const admins = [
-    { id: 4, name: "Paolo Reyes", email: "paolo.reyes@school.edu.ph", password: null, role: "admin", status: "active", joinedAt: ago(110) },
-    { id: 5, name: "Mika Dizon", email: "mika.dizon@school.edu.ph", password: null, role: "admin", status: "active", joinedAt: ago(100) },
+    {
+      id: 4,
+      name: "Paolo Reyes",
+      email: "paolo.reyes@school.edu.ph",
+      password: null,
+      role: "admin",
+      status: "active",
+      joinedAt: ago(110),
+    },
+    {
+      id: 5,
+      name: "Mika Dizon",
+      email: "mika.dizon@school.edu.ph",
+      password: null,
+      role: "admin",
+      status: "active",
+      joinedAt: ago(100),
+    },
   ];
 
   const students = Array.from({ length: 40 }, (_, i) => {

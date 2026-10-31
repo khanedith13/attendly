@@ -1,3 +1,4 @@
+import { COURSES, FIRST, LAST } from "./names";
 import { storage } from "../utils/storage";
 import { getCatalog } from "./catalog";
 
@@ -13,71 +14,6 @@ const DEMO_STUDENT = {
   course: "BS Information Technology",
 };
 
-const FIRST = [
-  "Ana",
-  "John",
-  "Lea",
-  "Rafael",
-  "Mika",
-  "Paolo",
-  "Carla",
-  "Jose",
-  "Bea",
-  "Miguel",
-  "Sofia",
-  "Luis",
-  "Nina",
-  "Carlo",
-  "Trina",
-  "Marco",
-  "Hannah",
-  "Ian",
-  "Kyle",
-  "Pia",
-  "Enzo",
-  "Gwen",
-  "Noel",
-  "Rhea",
-  "Vince",
-  "Tess",
-  "Dino",
-  "Alma",
-  "Rey",
-  "Joy",
-];
-const LAST = [
-  "Santos",
-  "Reyes",
-  "Cruz",
-  "Kim",
-  "Garcia",
-  "Lopez",
-  "Torres",
-  "Ramos",
-  "Flores",
-  "Mendoza",
-  "Bautista",
-  "Aquino",
-  "Castro",
-  "Navarro",
-  "Salazar",
-  "Domingo",
-  "Pascual",
-  "Tan",
-  "Lim",
-  "Go",
-  "Rivera",
-  "Soriano",
-  "Hernandez",
-  "Gonzales",
-  "Aguilar",
-  "Ocampo",
-  "Valdez",
-  "Mercado",
-  "Dizon",
-  "Evangelista",
-];
-const COURSES = ["BSIT", "BSBA", "BSCS", "BA Comm", "BSED", "BSN"];
 
 // Made-up but repeatable students, so the demo looks the same every time.
 function fakeStudent(eventId, i) {

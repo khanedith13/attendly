@@ -1,0 +1,31 @@
+.roster-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  
+  .roster-toolbar__right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
+  
+  .roster-tiles {
+    display: grid;
+    gap: 14px;
+  }
+  
+  .roster-tiles--4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .roster-tiles--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .roster-note {
+    margin-top: 18px;
+  }

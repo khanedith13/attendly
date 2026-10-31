@@ -1,0 +1,35 @@
+.pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+  
+  .pager__buttons {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .pager__btn {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    font-size: 12px;
+    color: var(--text-body);
+    cursor: pointer;
+  }
+  
+  .pager__btn--active {
+    background: var(--primary-soft);
+    border-color: var(--primary-soft-border);
+    color: var(--primary);
+  }
+  
+  .pager__btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }

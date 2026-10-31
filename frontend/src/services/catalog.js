@@ -199,3 +199,8 @@ export function adjustCounts(id, { registered = 0, checkedIn = 0 }) {
     ),
   );
 }
+
+// For example, when an organizer renames their organization.
+export function updateOwnedEvents(ownerId, patch) {
+  saveEvents(readEvents().map((event) => (event.ownerId === ownerId ? { ...event, ...patch } : event)));
+}

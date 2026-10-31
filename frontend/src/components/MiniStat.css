@@ -1,0 +1,18 @@
+.mini-stat {
+    padding: 14px 16px;
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+    background: var(--bg);
+  }
+  
+  .mini-stat__label {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+  
+  .mini-stat__value {
+    margin-top: 6px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+  }

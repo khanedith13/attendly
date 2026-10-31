@@ -1,3 +1,4 @@
+import { useNow } from "../../hooks/useNow";
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
@@ -35,9 +36,17 @@ const columns = [
   { key: "name", header: "Student", render: (row) => <PersonCell name={row.name} /> },
   { key: "studentId", header: "Student ID" },
   { key: "email", header: "Email" },
-  { key: "registered", header: "Registered", render: (row) => formatShortDateTime(row.registeredAt) },
+  {
+    key: "registered",
+    header: "Registered",
+    render: (row) => formatShortDateTime(row.registeredAt),
+  },
   { key: "in", header: "Check in", render: (row) => (row.timeIn ? formatTime(row.timeIn) : "—") },
-  { key: "out", header: "Check out", render: (row) => (row.timeOut ? formatTime(row.timeOut) : "—") },
+  {
+    key: "out",
+    header: "Check out",
+    render: (row) => (row.timeOut ? formatTime(row.timeOut) : "—"),
+  },
   {
     key: "status",
     header: "Status",
@@ -57,6 +66,7 @@ export default function Attendees() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [page, setPage] = useState(1);
+  const now = useNow();
 
   useTopbarNone();
 
@@ -75,7 +85,6 @@ export default function Attendees() {
     );
   }
 
-  const now = Date.now();
   const all = rows.map((row) => ({ ...row, state: attendeeStatus(row, event, now) }));
   const summary = {
     registered: all.length,
@@ -90,7 +99,8 @@ export default function Attendees() {
     if (filter === "out" && !row.timeOut) return false;
     if (filter === "noshow" && row.state !== "noshow") return false;
     return (
-      !query || [row.name, row.studentId, row.email].some((field) => field.toLowerCase().includes(query))
+      !query ||
+      [row.name, row.studentId, row.email].some((field) => field.toLowerCase().includes(query))
     );
   });
 

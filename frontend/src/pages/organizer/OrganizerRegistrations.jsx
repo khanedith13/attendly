@@ -33,7 +33,11 @@ const columns = [
   { key: "studentId", header: "Student ID" },
   { key: "course", header: "Course" },
   { key: "eventTitle", header: "Event" },
-  { key: "registered", header: "Registered on", render: (row) => formatShortDateTime(row.registeredAt) },
+  {
+    key: "registered",
+    header: "Registered on",
+    render: (row) => formatShortDateTime(row.registeredAt),
+  },
   {
     key: "status",
     header: "Status",

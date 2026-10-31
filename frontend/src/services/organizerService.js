@@ -8,7 +8,13 @@ import { toIso } from "../utils/dates";
 import { validateEvent } from "../utils/eventValidation";
 import { percent } from "../utils/format";
 import { toneForCategory } from "../config/events";
-import { addCatalogEvent, getCatalog, getCatalogEvent, updateCatalogEvent, updateOwnedEvents } from "./catalog";
+import {
+  addCatalogEvent,
+  getCatalog,
+  getCatalogEvent,
+  updateCatalogEvent,
+  updateOwnedEvents,
+} from "./catalog";
 
 const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms));
 const sum = (events, field) => events.reduce((total, event) => total + (event[field] ?? 0), 0);
@@ -166,7 +172,8 @@ export async function getAttendees(user, eventId) {
     .sort(byStartDesc);
 
   // Default: the most recent event that has already started.
-  const fallback = events.find((event) => new Date(event.startsAt).getTime() <= now) ?? events[0] ?? null;
+  const fallback =
+    events.find((event) => new Date(event.startsAt).getTime() <= now) ?? events[0] ?? null;
   const event = events.find((item) => item.id === eventId) ?? fallback;
 
   return {

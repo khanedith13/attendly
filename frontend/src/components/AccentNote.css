@@ -1,8 +1,8 @@
 .accent-note {
-    margin: 0;
-    padding-left: 14px;
-    border-left: 3px solid var(--primary);
-    font-size: 11px;
-    line-height: 1.5;
-    color: var(--text-muted);
-  }
+  margin: 0;
+  padding-left: 14px;
+  border-left: 3px solid var(--primary);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}

@@ -13,8 +13,70 @@ const DEMO_STUDENT = {
   course: "BS Information Technology",
 };
 
-const FIRST = ["Ana", "John", "Lea", "Rafael", "Mika", "Paolo", "Carla", "Jose", "Bea", "Miguel", "Sofia", "Luis", "Nina", "Carlo", "Trina", "Marco", "Hannah", "Ian", "Kyle", "Pia", "Enzo", "Gwen", "Noel", "Rhea", "Vince", "Tess", "Dino", "Alma", "Rey", "Joy"];
-const LAST = ["Santos", "Reyes", "Cruz", "Kim", "Garcia", "Lopez", "Torres", "Ramos", "Flores", "Mendoza", "Bautista", "Aquino", "Castro", "Navarro", "Salazar", "Domingo", "Pascual", "Tan", "Lim", "Go", "Rivera", "Soriano", "Hernandez", "Gonzales", "Aguilar", "Ocampo", "Valdez", "Mercado", "Dizon", "Evangelista"];
+const FIRST = [
+  "Ana",
+  "John",
+  "Lea",
+  "Rafael",
+  "Mika",
+  "Paolo",
+  "Carla",
+  "Jose",
+  "Bea",
+  "Miguel",
+  "Sofia",
+  "Luis",
+  "Nina",
+  "Carlo",
+  "Trina",
+  "Marco",
+  "Hannah",
+  "Ian",
+  "Kyle",
+  "Pia",
+  "Enzo",
+  "Gwen",
+  "Noel",
+  "Rhea",
+  "Vince",
+  "Tess",
+  "Dino",
+  "Alma",
+  "Rey",
+  "Joy",
+];
+const LAST = [
+  "Santos",
+  "Reyes",
+  "Cruz",
+  "Kim",
+  "Garcia",
+  "Lopez",
+  "Torres",
+  "Ramos",
+  "Flores",
+  "Mendoza",
+  "Bautista",
+  "Aquino",
+  "Castro",
+  "Navarro",
+  "Salazar",
+  "Domingo",
+  "Pascual",
+  "Tan",
+  "Lim",
+  "Go",
+  "Rivera",
+  "Soriano",
+  "Hernandez",
+  "Gonzales",
+  "Aguilar",
+  "Ocampo",
+  "Valdez",
+  "Mercado",
+  "Dizon",
+  "Evangelista",
+];
 const COURSES = ["BSIT", "BSBA", "BSCS", "BA Comm", "BSED", "BSN"];
 
 // Made-up but repeatable students, so the demo looks the same every time.
@@ -49,10 +111,15 @@ function seedRoster() {
         id: event.id * 100000 + i,
         eventId: event.id,
         ...person,
-        registeredAt: new Date(start - (1 + (i % 12)) * DAY - ((i * 3571) % 80000) * 1000).toISOString(),
+        registeredAt: new Date(
+          start - (1 + (i % 12)) * DAY - ((i * 3571) % 80000) * 1000,
+        ).toISOString(),
         status: "registered",
-        timeIn: arrived ? new Date(start + ((i * 5) % 50 - 12) * 60000).toISOString() : null,
-        timeOut: arrived && ended ? new Date(start + 2.5 * HOUR + ((i * 3) % 30) * 60000).toISOString() : null,
+        timeIn: arrived ? new Date(start + (((i * 5) % 50) - 12) * 60000).toISOString() : null,
+        timeOut:
+          arrived && ended
+            ? new Date(start + 2.5 * HOUR + ((i * 3) % 30) * 60000).toISOString()
+            : null,
       });
     }
   }
@@ -124,7 +191,9 @@ export function upsertRegistration({ eventId, user, studentId, course }) {
 }
 
 function patchMine(eventId, userId, patch) {
-  saveRoster(readRoster().map((row) => (isMine(row, eventId, userId) ? { ...row, ...patch } : row)));
+  saveRoster(
+    readRoster().map((row) => (isMine(row, eventId, userId) ? { ...row, ...patch } : row)),
+  );
 }
 
 export const cancelRosterRegistration = (eventId, userId) =>
@@ -136,5 +205,7 @@ export const markCheckOut = (eventId, userId, iso) => patchMine(eventId, userId,
 
 // Keeps the organizer's view in step when a student edits their account.
 export function syncProfile(userId, { name, studentId, course }) {
-  saveRoster(readRoster().map((row) => (row.userId === userId ? { ...row, name, studentId, course } : row)));
+  saveRoster(
+    readRoster().map((row) => (row.userId === userId ? { ...row, name, studentId, course } : row)),
+  );
 }

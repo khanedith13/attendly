@@ -1,3 +1,4 @@
+import ReviewPill from "./ReviewPill";
 import Avatar from "./Avatar";
 import Pill from "./Pill";
 import "./Topbar.css";
@@ -13,7 +14,7 @@ export default function Topbar({ roleLabel, pageLabel, variant, initials, badge,
         </button>
       );
     }
-    if (variant === "reviews") return <Pill tone="warning">3 reviews needed</Pill>;
+    if (variant === "reviews") return <ReviewPill />;
     return (
       <button type="button" className="icon-btn" aria-label="Notifications">
         ♢<span className="icon-btn__dot" />

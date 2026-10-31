@@ -1,56 +1,47 @@
 import { ApiError } from "../api/ApiError";
 import { storage } from "../utils/storage";
+import { logAudit } from "./audit";
+import { findUserByEmail, readUsers, saveUsers } from "./userStore";
 
 const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Same demo accounts the backend seeder will create later.
-const seedUsers = [
-  { id: 1, name: "Admin", email: "admin@school.edu.ph", password: "password123", role: "admin" },
-  {
-    id: 2,
-    name: "Delfin Octobre",
-    email: "student@school.edu.ph",
-    password: "password123",
-    role: "student",
-  },
-  {
-    id: 3,
-    name: "Events Team",
-    email: "organizer@school.edu.ph",
-    password: "password123",
-    role: "organizer",
-  },
-];
-
-const OVERRIDES_KEY = "attendly_user_overrides";
-const readOverrides = () => storage.getJSON(OVERRIDES_KEY, {});
-
-// Edits made on My Account (name, password) are layered on top of the base users.
-const allUsers = () => {
-  const overrides = readOverrides();
-  return [...seedUsers, ...storage.getMockUsers()].map((user) => ({
-    ...user,
-    ...overrides[user.id],
-  }));
-};
-
-function publicUser({ id, name, email, role }) {
-  return { id, name, email, role };
+function publicUser({ id, name, email, role, status }) {
+  return { id, name, email, role, status };
 }
 
 export async function login({ email, password }) {
   await delay();
-  const found = allUsers().find((u) => u.email === email.trim().toLowerCase());
+  const cleanEmail = email.trim().toLowerCase();
+  const found = findUserByEmail(cleanEmail);
 
-  if (!found || found.password !== password) {
+  if (!found || !found.password || found.password !== password) {
+    logAudit({
+      actor: cleanEmail,
+      role: found?.role ?? "—",
+      action: "Login attempt",
+      target: cleanEmail,
+      result: "failed",
+    });
     throw new ApiError("Invalid email or password.", 422, {
       email: ["Invalid email or password."],
     });
   }
 
+  if (found.status === "suspended") {
+    logAudit({
+      actor: found.name,
+      role: found.role,
+      action: "Login blocked (suspended)",
+      target: found.email,
+      result: "failed",
+    });
+    throw new ApiError("This account has been suspended. Contact an administrator.", 403);
+  }
+
   const user = publicUser(found);
   const token = `mock-token-${found.id}`;
   storage.setSession({ token, user });
+  logAudit({ actor: found.name, role: found.role, action: "Logged in", target: found.email });
   return { user, token };
 }
 
@@ -64,7 +55,7 @@ export async function register(data) {
     });
   }
 
-  if (allUsers().some((u) => u.email === email)) {
+  if (findUserByEmail(email)) {
     throw new ApiError("Validation failed.", 422, {
       email: ["An account with this email already exists."],
     });
@@ -76,8 +67,18 @@ export async function register(data) {
     email,
     password: data.password,
     role: data.role,
+    // Organizers wait for an administrator to approve them.
+    status: data.role === "organizer" ? "pending" : "active",
+    joinedAt: new Date().toISOString(),
   };
-  storage.setMockUsers([...storage.getMockUsers(), created]);
+  saveUsers([...readUsers(), created]);
+  logAudit({
+    actor: created.name,
+    role: created.role,
+    action: "Registered account",
+    target: created.email,
+  });
+
   return { user: publicUser(created) };
 }
 
@@ -86,23 +87,25 @@ export async function logout() {
   storage.clearSession();
 }
 
+// Reads the account fresh, so name changes and suspensions take effect on reload.
 export async function getCurrentUser() {
   const { token, user } = storage.getSession();
-  return token ? user : null;
+  if (!token || !user) return null;
+
+  const fresh = readUsers().find((item) => item.id === user.id);
+  if (!fresh || fresh.status === "suspended") {
+    storage.clearSession();
+    return null;
+  }
+  return publicUser(fresh);
 }
 
 export async function updateProfile(userId, { name }) {
-  const overrides = readOverrides();
-  storage.setJSON(OVERRIDES_KEY, { ...overrides, [userId]: { ...overrides[userId], name } });
-
-  const session = storage.getSession();
-  if (session.user?.id === userId) {
-    storage.setSession({ ...session, user: { ...session.user, name } });
-  }
+  saveUsers(readUsers().map((user) => (user.id === userId ? { ...user, name } : user)));
 }
 
 export async function changePassword(userId, { currentPassword, newPassword }) {
-  const found = allUsers().find((user) => user.id === userId);
+  const found = readUsers().find((user) => user.id === userId);
 
   if (!found || found.password !== currentPassword) {
     throw new ApiError("Validation failed.", 422, {
@@ -110,9 +113,7 @@ export async function changePassword(userId, { currentPassword, newPassword }) {
     });
   }
 
-  const overrides = readOverrides();
-  storage.setJSON(OVERRIDES_KEY, {
-    ...overrides,
-    [userId]: { ...overrides[userId], password: newPassword },
-  });
+  saveUsers(
+    readUsers().map((user) => (user.id === userId ? { ...user, password: newPassword } : user)),
+  );
 }

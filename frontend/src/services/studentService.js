@@ -2,9 +2,9 @@ import { cancelRosterRegistration, markCheckIn, markCheckOut, upsertRegistration
 import { ApiError } from "../api/ApiError";
 import { storage } from "../utils/storage";
 import { adjustCounts, getCatalog, getCatalogEvent } from "./catalog";
+import { readSettings } from "./settings";
 
 const DEMO_STUDENT_ID = 2; // the demo student in authService
-const LATE_GRACE_MS = 15 * 60 * 1000;
 const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms));
 const stateKey = (userId) => `attendly_student_v2_${userId}`;
 const newToken = () => crypto.randomUUID();
@@ -316,7 +316,8 @@ export async function checkIn(user, { studentId, email, eventId }) {
   }
 
   const checkedInAt = new Date().toISOString();
-  const late = new Date(checkedInAt) - new Date(event.startsAt) > LATE_GRACE_MS;
+  const graceMs = readSettings().lateGraceMinutes * 60000;
+  const late = new Date(checkedInAt) - new Date(event.startsAt) > graceMs;
 
   const session = {
     id: Date.now(),

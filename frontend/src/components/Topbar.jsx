@@ -1,9 +1,17 @@
-import ReviewPill from "./ReviewPill";
 import Avatar from "./Avatar";
 import Pill from "./Pill";
+import ReviewPill from "./ReviewPill";
 import "./Topbar.css";
 
-export default function Topbar({ roleLabel, pageLabel, variant, initials, badge, slotRef }) {
+export default function Topbar({
+  roleLabel,
+  pageLabel,
+  variant,
+  initials,
+  badge,
+  slotRef,
+  onMenu,
+}) {
   function renderExtra() {
     if (badge?.hidden) return null;
     if (badge?.text) return <Pill tone={badge.tone}>{badge.text}</Pill>;
@@ -24,8 +32,13 @@ export default function Topbar({ roleLabel, pageLabel, variant, initials, badge,
 
   return (
     <header className="topbar">
-      <div className="topbar__crumb">
-        <b>{roleLabel}</b> / {pageLabel}
+      <div className="topbar__left">
+        <button type="button" className="topbar__menu" aria-label="Open menu" onClick={onMenu}>
+          ☰
+        </button>
+        <div className="topbar__crumb">
+          <b>{roleLabel}</b> / {pageLabel}
+        </div>
       </div>
 
       <div className="topbar__actions">

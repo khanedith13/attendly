@@ -3,7 +3,8 @@ import { toApiErrors } from "../utils/apiErrors";
 import { notifyReviewsChanged } from "../utils/reviewBus";
 import { userStatuses, validateUserForm } from "../utils/userValidation";
 import { getAuditEntries, logAudit } from "./audit";
-import { getCatalog } from "./catalog";
+import { getCatalog, getCatalogEvent, updateCatalogEvent } from "./catalog";
+import { organizerProfileOf } from "./organizerService";
 import { findUserByEmail, readUsers, saveUsers } from "./userStore";
 
 const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -52,7 +53,10 @@ export async function getAdminDashboard() {
       users: users.length,
       organizers: count("organizer"),
       activeEvents: events.filter(
-        (e) => e.status === "published" && new Date(e.endsAt).getTime() >= now,
+        (e) =>
+          e.status === "published" &&
+          (e.review ?? "approved") === "approved" &&
+          new Date(e.endsAt).getTime() >= now,
       ).length,
       uptime: "97.2%", // placeholder: real uptime needs server monitoring
     },
@@ -145,4 +149,108 @@ export async function updateUser(admin, id, changes) {
   }
   logAudit({ actor: admin.name, role: "admin", action, target: target.email });
   notifyReviewsChanged();
+}
+
+/* ---------- Organizers ---------- */
+
+const transitions = {
+  approve: { from: "pending", to: "active", log: "Approved organizer" },
+  reject: { from: "pending", to: "suspended", log: "Rejected organizer application" },
+  suspend: { from: "active", to: "suspended", log: "Suspended organizer" },
+  reactivate: { from: "suspended", to: "active", log: "Reactivated organizer" },
+};
+
+const statusOrder = { pending: 0, active: 1, suspended: 2 };
+
+export async function listOrganizers() {
+  await delay();
+  const events = getCatalog();
+
+  return readUsers()
+    .filter((user) => user.role === "organizer")
+    .map((user) => {
+      // Fake organizers carry their own numbers; real ones are calculated.
+      let organization = user.org;
+      if (!organization) {
+        const profile = organizerProfileOf(user);
+        const own = events.filter((e) => e.ownerId === user.id && e.status === "published");
+        organization = {
+          name: profile.organizationName,
+          phone: profile.contactNumber,
+          events: own.length,
+          registrations: own.reduce((total, e) => total + e.registered, 0),
+        };
+      }
+
+      return {
+        id: user.id,
+        name: organization.name,
+        phone: organization.phone || "—",
+        events: organization.events,
+        registrations: organization.registrations,
+        status: user.status,
+        contactPerson: user.name,
+        email: user.email,
+      };
+    })
+    .sort((a, b) => statusOrder[a.status] - statusOrder[b.status] || a.name.localeCompare(b.name));
+}
+
+// action: "approve" | "reject" | "suspend" | "reactivate"
+export async function setOrganizerStatus(admin, id, action) {
+  await delay();
+  const rule = transitions[action];
+  const users = readUsers();
+  const target = users.find((user) => user.id === id && user.role === "organizer");
+
+  if (!rule || !target) throw new ApiError("Organizer not found.", 404);
+  if (target.status !== rule.from) {
+    throw new ApiError(`This organizer is already ${target.status}.`, 409);
+  }
+
+  saveUsers(users.map((user) => (user.id === id ? { ...user, status: rule.to } : user)));
+  logAudit({
+    actor: admin.name,
+    role: "admin",
+    action: rule.log,
+    target: target.org?.name ?? organizerProfileOf(target).organizationName,
+  });
+  notifyReviewsChanged();
+}
+
+/* ---------- Event moderation ---------- */
+
+export async function listAdminEvents() {
+  await delay();
+  return getCatalog()
+    .filter((event) => event.status !== "draft")
+    .sort((a, b) => new Date(b.startsAt) - new Date(a.startsAt));
+}
+
+function setReview(admin, id, review, note, action) {
+  const event = getCatalogEvent(id);
+  if (!event || event.status === "draft") throw new ApiError("Event not found.", 404);
+
+  updateCatalogEvent(id, { review, reviewNote: note });
+  logAudit({ actor: admin.name, role: "admin", action, target: event.title });
+  notifyReviewsChanged();
+}
+
+export async function approveEvent(admin, id) {
+  await delay();
+  const wasFlagged = getCatalogEvent(id)?.review === "flagged";
+  setReview(admin, id, "approved", "", wasFlagged ? "Cleared event flag" : "Approved event");
+}
+
+export async function flagEvent(admin, id, reason) {
+  await delay();
+  const text = reason.trim();
+
+  if (text.length < 10) assertValid({ reason: "Write at least 10 characters." });
+  if (text.length > 200) assertValid({ reason: "Use 200 characters or fewer." });
+  if (getCatalogEvent(id)?.status === "cancelled") {
+    throw new ApiError("Cancelled events cannot be flagged.", 409);
+  }
+
+  setReview(admin, id, "flagged", text, "Flagged event");
 }

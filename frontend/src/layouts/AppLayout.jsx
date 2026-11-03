@@ -48,7 +48,7 @@ export default function AppLayout({ role }) {
           slotRef={setSlot}
         />
         <main className="app__content">
-        {role === "organizer" && user.status === "pending" && (
+          {role === "organizer" && user.status === "pending" && (
             <Notice tone="info">
               Your organizer account is awaiting administrator approval. You can create drafts, but
               publishing is disabled until you are approved.

@@ -115,11 +115,17 @@ export default function AdminOrganizers() {
     { key: "name", header: "Organization", bold: true },
     { key: "phone", header: "Contact" },
     { key: "events", header: "Events" },
-    { key: "registrations", header: "Registrations", render: (row) => row.registrations.toLocaleString() },
+    {
+      key: "registrations",
+      header: "Registrations",
+      render: (row) => row.registrations.toLocaleString(),
+    },
     {
       key: "status",
       header: "Status",
-      render: (row) => <Pill tone={statusMeta[row.status].tone}>{statusMeta[row.status].label}</Pill>,
+      render: (row) => (
+        <Pill tone={statusMeta[row.status].tone}>{statusMeta[row.status].label}</Pill>
+      ),
     },
     {
       key: "actions",
@@ -131,7 +137,11 @@ export default function AdminOrganizers() {
               <Button size="sm" onClick={() => applyAction(row, "approve")}>
                 Approve
               </Button>
-              <Button size="sm" variant="danger" onClick={() => setConfirm({ row, action: "reject" })}>
+              <Button
+                size="sm"
+                variant="danger"
+                onClick={() => setConfirm({ row, action: "reject" })}
+              >
                 Reject
               </Button>
             </div>
@@ -139,7 +149,11 @@ export default function AdminOrganizers() {
         }
         if (row.status === "active") {
           return (
-            <Button size="sm" variant="danger" onClick={() => setConfirm({ row, action: "suspend" })}>
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={() => setConfirm({ row, action: "suspend" })}
+            >
               Suspend
             </Button>
           );

@@ -132,7 +132,8 @@ export default function AdminEvents() {
   if (loading) return <LoadingBlock />;
 
   const withStatus = data.map((event) => ({ event, display: getDisplayStatus(event) }));
-  const count = (...statuses) => withStatus.filter((item) => statuses.includes(item.display)).length;
+  const count = (...statuses) =>
+    withStatus.filter((item) => statuses.includes(item.display)).length;
 
   const query = search.trim().toLowerCase();
   const matches = withStatus
@@ -168,7 +169,10 @@ export default function AdminEvents() {
 
   async function submitFlag(reason) {
     await flagEvent(admin, flagTarget.id, reason);
-    setMessage({ tone: "success", text: `${flagTarget.title} was flagged and hidden from students.` });
+    setMessage({
+      tone: "success",
+      text: `${flagTarget.title} was flagged and hidden from students.`,
+    });
     setFlagTarget(null);
     reload();
   }
@@ -192,7 +196,11 @@ export default function AdminEvents() {
     { key: "title", header: "Event", bold: true },
     { key: "organizer", header: "Organizer" },
     { key: "date", header: "Date", render: (row) => formatDay(row.startsAt) },
-    { key: "seats", header: "Registered / Capacity", render: (row) => `${row.registered} / ${row.capacity}` },
+    {
+      key: "seats",
+      header: "Registered / Capacity",
+      render: (row) => `${row.registered} / ${row.capacity}`,
+    },
     { key: "status", header: "Status", render: (row) => <EventStatusPill event={row} /> },
     {
       key: "actions",

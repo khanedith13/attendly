@@ -1,9 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import AppLayout from "../layouts/AppLayout";
-import ComponentsPreview from "../pages/ComponentsPreview";
 import NotFound from "../pages/NotFound";
-import ThemePreview from "../pages/ThemePreview";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import GuestRoute from "./GuestRoute";
@@ -82,10 +80,6 @@ export default function AppRouter() {
           <Route path="audit-log" element={<AdminAuditLog />} />
         </Route>
       </Route>
-
-      {/* Temporary preview pages (deleted in a later step) */}
-      <Route path="/theme" element={<ThemePreview />} />
-      <Route path="/components" element={<ComponentsPreview />} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>

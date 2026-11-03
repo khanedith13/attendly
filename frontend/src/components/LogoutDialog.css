@@ -1,0 +1,35 @@
+.logout__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: var(--danger-bg);
+    color: var(--danger-text);
+    font-size: 20px;
+  }
+  
+  .logout__title {
+    margin: 18px 0 8px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  
+  .logout__text {
+    margin: 0 0 22px;
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+  
+  .logout__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  
+  .btn.logout__confirm {
+    border-color: #fecaca;
+  }

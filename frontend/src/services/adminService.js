@@ -6,6 +6,11 @@ import { getAuditEntries, logAudit } from "./audit";
 import { getCatalog, getCatalogEvent, updateCatalogEvent } from "./catalog";
 import { organizerProfileOf } from "./organizerService";
 import { findUserByEmail, readUsers, saveUsers } from "./userStore";
+import { settingFields } from "../config/settings";
+import { attendanceStatus } from "../utils/attendance";
+import { validateSettings } from "../utils/settingsValidation";
+import { getRoster } from "./roster";
+import { readSettings, writeSettings } from "./settings";
 
 const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -253,4 +258,64 @@ export async function flagEvent(admin, id, reason) {
   }
 
   setReview(admin, id, "flagged", text, "Flagged event");
+}
+
+/* ---------- Settings ---------- */
+
+export async function getSettings() {
+  await delay();
+  return readSettings();
+}
+
+export async function saveSettings(admin, values) {
+  await delay();
+  assertValid(validateSettings(values));
+
+  const before = readSettings();
+  const after = {
+    ...before,
+    ...values,
+    platformName: String(values.platformName).trim(),
+    schoolDomain: String(values.schoolDomain).trim().toLowerCase(),
+    lateGraceMinutes: Number(values.lateGraceMinutes),
+    sessionTimeoutMinutes: Number(values.sessionTimeoutMinutes),
+  };
+
+  const changed = settingFields.filter((field) => before[field.key] !== after[field.key]);
+  writeSettings(after);
+
+  changed.forEach((field) =>
+    logAudit({ actor: admin.name, role: "admin", action: "Changed setting", target: field.label }),
+  );
+  return { changed: changed.length };
+}
+
+/* ---------- Attendance report ---------- */
+
+export async function getAttendanceRecords() {
+  await delay();
+  const events = new Map(getCatalog().map((event) => [event.id, event]));
+  const graceMs = readSettings().lateGraceMinutes * 60000;
+  const now = Date.now();
+
+  return getRoster()
+    .filter((row) => row.status === "registered" && events.has(row.eventId))
+    .map((row) => {
+      const event = events.get(row.eventId);
+      return {
+        ...row,
+        eventTitle: event.title,
+        eventStart: event.startsAt,
+        outcome: attendanceStatus(row, event, graceMs, now),
+      };
+    })
+    .filter((row) => row.outcome !== null)
+    .sort((a, b) => new Date(b.timeIn ?? b.eventStart) - new Date(a.timeIn ?? a.eventStart));
+}
+
+/* ---------- Audit log ---------- */
+
+export async function getAuditLog() {
+  await delay();
+  return getAuditEntries();
 }

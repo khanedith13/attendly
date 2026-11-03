@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import LogoutDialog from "../../components/LogoutDialog";
 import Avatar from "../../components/Avatar";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
@@ -22,10 +22,11 @@ import { isStudentId } from "../../utils/validators";
 import "./Account.css";
 
 export default function MyAccount() {
-  const navigate = useNavigate();
-  const { user, logout, refreshUser } = useAuth();
+  const { user, refreshUser } = useAuth();
   const load = useCallback(() => getAccount(user.id), [user.id]);
   const { data, loading, reload } = useAsyncData(load);
+  const [showLogout, setShowLogout] = useState(false);
+  const closeLogout = useCallback(() => setShowLogout(false), []);
 
   const [edits, setEdits] = useState({});
   const [notifEdits, setNotifEdits] = useState({});
@@ -116,11 +117,6 @@ export default function MyAccount() {
     await updatePassword(user, passwords);
     setMessage({ tone: "success", text: "Password updated." });
     reload();
-  }
-
-  async function handleLogout() {
-    await logout();
-    navigate("/login", { replace: true });
   }
 
   return (
@@ -252,12 +248,13 @@ export default function MyAccount() {
           <h3 className="account-title">Sign out</h3>
           <p className="account-hint">End your current session on this device.</p>
         </div>
-        <Button variant="danger" onClick={handleLogout}>
+        <Button variant="danger" onClick={() => setShowLogout(true)}>
           Log out
         </Button>
       </Card>
 
       {showPassword && <ChangePasswordModal onSubmit={handlePassword} onClose={closePassword} />}
+      {showLogout && <LogoutDialog onClose={closeLogout} />}
     </>
   );
 }

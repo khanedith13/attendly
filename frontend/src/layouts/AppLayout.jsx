@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import Notice from "../components/Notice";
+import { useCallback, useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+import Notice from "../components/Notice";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { roleConfig } from "../config/navigation";
@@ -13,6 +13,9 @@ export default function AppLayout({ role }) {
   const { user, refreshUser } = useAuth();
   const [badge, setBadge] = useState(null);
   const [slot, setSlot] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const config = roleConfig[role];
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
 
   // Re-check the account whenever the person moves to another page, so approvals
   // and suspensions take effect without a manual refresh.
@@ -20,7 +23,16 @@ export default function AppLayout({ role }) {
     refreshUser();
   }, [pathname, refreshUser]);
 
-  const config = roleConfig[role];
+  // Escape closes the mobile menu.
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+
+    function handleKey(event) {
+      if (event.key === "Escape") setMenuOpen(false);
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [menuOpen]);
 
   const profile = {
     name: user.name,
@@ -36,7 +48,13 @@ export default function AppLayout({ role }) {
 
   return (
     <div className="app">
-      <Sidebar groups={config.groups} profile={config.showProfile ? profile : null} />
+      <Sidebar
+        groups={config.groups}
+        profile={config.showProfile ? profile : null}
+        open={menuOpen}
+        onNavigate={closeMenu}
+      />
+      {menuOpen && <div className="scrim" onClick={closeMenu} />}
 
       <div className="app__main">
         <Topbar
@@ -46,6 +64,7 @@ export default function AppLayout({ role }) {
           initials={profile.initials}
           badge={badge}
           slotRef={setSlot}
+          onMenu={() => setMenuOpen(true)}
         />
         <main className="app__content">
           {role === "organizer" && user.status === "pending" && (

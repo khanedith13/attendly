@@ -166,3 +166,28 @@ textarea {
 .row-none {
   color: var(--text-subtle);
 }
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.not-found {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  min-height: 100vh;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.not-found h1 {
+  font-size: 48px;
+  color: var(--text);
+}
+
+.not-found__link {
+  font-weight: 700;
+  color: var(--primary);
+}

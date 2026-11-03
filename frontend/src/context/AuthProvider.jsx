@@ -40,7 +40,8 @@ export default function AuthProvider({ children }) {
 
   const refreshUser = useCallback(async () => {
     const current = await authService.getCurrentUser();
-    setUser(current);
+    // Keep the same object when nothing changed, so pages don't reload for nothing.
+    setUser((prev) => (JSON.stringify(prev) === JSON.stringify(current) ? prev : current));
   }, []);
 
   const value = useMemo(

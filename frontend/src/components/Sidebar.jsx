@@ -26,7 +26,9 @@ export default function Sidebar({ groups, profile, open = false, onNavigate }) {
                   to={item.path}
                   end
                   onClick={onNavigate}
-                  className={({ isActive }) => (isActive ? "nav-item nav-item--active" : "nav-item")}
+                  className={({ isActive }) =>
+                    isActive ? "nav-item nav-item--active" : "nav-item"
+                  }
                 >
                   <span className="nav-item__icon">{item.icon}</span>
                   {item.label}

@@ -16,3 +16,17 @@ export const registrationMeta = {
   registered: { label: "Confirmed", tone: "info" },
   waitlisted: { label: "Waitlisted", tone: "warning" },
 };
+
+// "present" | "late" | "absent", or null while the event is still going on.
+export function attendanceStatus(row, event, graceMs, now = Date.now()) {
+  if (row.timeIn) {
+    return new Date(row.timeIn) - new Date(event.startsAt) > graceMs ? "late" : "present";
+  }
+  return new Date(event.endsAt).getTime() < now ? "absent" : null;
+}
+
+export const outcomeMeta = {
+  present: { label: "Present", tone: "success" },
+  late: { label: "Late", tone: "warning" },
+  absent: { label: "Absent", tone: "danger" },
+};

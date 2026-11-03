@@ -1,4 +1,4 @@
-import { isSchoolEmail, isValidEmail, SCHOOL_DOMAIN } from "./validators";
+import { getSchoolDomain, isAllowedEmail, isValidEmail } from "./validators";
 
 export const userRoles = ["student", "organizer", "admin"];
 export const userStatuses = ["active", "pending", "suspended"];
@@ -13,7 +13,7 @@ export function validateUserForm(values, { mode }) {
   if (mode === "add") {
     if (!values.email.trim()) errors.email = "Email is required.";
     else if (!isValidEmail(values.email)) errors.email = "Enter a valid email address.";
-    else if (!isSchoolEmail(values.email)) errors.email = `Use an @${SCHOOL_DOMAIN} email.`;
+    else if (!isAllowedEmail(values.email)) errors.email = `Use an @${getSchoolDomain()} email.`;
 
     if (!values.password) errors.password = "Temporary password is required.";
     else if (values.password.length < 8) errors.password = "Use at least 8 characters.";

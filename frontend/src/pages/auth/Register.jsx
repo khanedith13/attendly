@@ -7,7 +7,7 @@ import FormField from "../../components/FormField";
 import RoleTabs from "../../components/RoleTabs";
 import Stepper from "../../components/Stepper";
 import AuthLayout from "../../layouts/AuthLayout";
-import { isSchoolEmail, isValidEmail, SCHOOL_DOMAIN } from "../../utils/validators";
+import { getSchoolDomain, isAllowedEmail, isValidEmail } from "../../utils/validators";
 
 const art = (
   <>
@@ -64,7 +64,7 @@ export default function Register() {
 
     if (!form.email.trim()) next.email = "Email is required.";
     else if (!isValidEmail(form.email)) next.email = "Enter a valid email address.";
-    else if (!isSchoolEmail(form.email)) next.email = `Use your @${SCHOOL_DOMAIN} email.`;
+    else if (!isAllowedEmail(form.email)) next.email = `Use your @${getSchoolDomain()} email.`;
 
     if (!form.password) next.password = "Password is required.";
     else if (form.password.length < 8) next.password = "Use at least 8 characters.";
@@ -133,7 +133,7 @@ export default function Register() {
           name="email"
           type="email"
           label="School Gmail"
-          placeholder={`name@${SCHOOL_DOMAIN}`}
+          placeholder={`name@${getSchoolDomain()}`}
           hint="Only verified school domains can create accounts."
           value={form.email}
           onChange={handleChange}

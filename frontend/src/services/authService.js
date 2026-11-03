@@ -2,6 +2,8 @@ import { ApiError } from "../api/ApiError";
 import { storage } from "../utils/storage";
 import { logAudit } from "./audit";
 import { findUserByEmail, readUsers, saveUsers } from "./userStore";
+import { isAllowedEmail } from "../utils/validators";
+import { readSettings } from "./settings";
 
 const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -52,6 +54,20 @@ export async function register(data) {
   if (data.role === "admin") {
     throw new ApiError("Validation failed.", 422, {
       role: ["Admin accounts are created by the system administrator."],
+    });
+  }
+
+  const settings = readSettings();
+
+  if (data.role === "organizer" && !settings.allowOrganizerSignup) {
+    throw new ApiError("Validation failed.", 422, {
+      role: ["Organizer sign-ups are currently closed."],
+    });
+  }
+
+  if (!isAllowedEmail(email)) {
+    throw new ApiError("Validation failed.", 422, {
+      email: [`Use your @${settings.schoolDomain} email.`],
     });
   }
 

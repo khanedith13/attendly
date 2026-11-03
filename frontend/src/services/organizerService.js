@@ -1,3 +1,5 @@
+import { notifyReviewsChanged } from "../utils/reviewBus";
+import { readSettings } from "./settings";
 import * as authService from "./authService";
 import { getRoster } from "./roster";
 import { storage } from "../utils/storage";
@@ -25,6 +27,9 @@ const byStartDesc = (a, b) => new Date(b.startsAt) - new Date(a.startsAt);
 function ownEvents(user) {
   return getCatalog().filter((event) => event.ownerId === user.id);
 }
+
+// With "Event approval required" on, newly published events wait for an admin.
+const reviewForPublish = () => (readSettings().requireEventApproval ? "pending" : "approved");
 
 // An organizer can only touch their own events.
 function ownEvent(user, id) {
@@ -95,7 +100,8 @@ export async function publishEvent(user, id) {
   if (new Date(event.endsAt) < new Date()) {
     throw new ApiError("This event's date has passed. Edit the date before publishing.", 409);
   }
-  updateCatalogEvent(id, { status: "published" });
+  updateCatalogEvent(id, { status: "published", review: reviewForPublish() });
+  notifyReviewsChanged();
 }
 
 export async function cancelEvent(user, id) {
@@ -152,10 +158,12 @@ export async function createEvent(user, data, { publish = false } = {}) {
     ownerId: user.id,
     organizer: user.name,
     registered: 0,
+    review: publish ? reviewForPublish() : "approved",
     checkedIn: 0,
     createdAt: new Date().toISOString(),
   };
   addCatalogEvent(event);
+  if (publish) notifyReviewsChanged();
   return event;
 }
 
@@ -175,10 +183,13 @@ export async function updateEvent(user, id, data, { publish = false } = {}) {
     }),
   );
 
+  const publishing = publish && event.status === "draft";
   updateCatalogEvent(id, {
     ...fieldsFromForm(data),
-    status: publish && event.status === "draft" ? "published" : event.status,
+    status: publishing ? "published" : event.status,
+    ...(publishing ? { review: reviewForPublish() } : {}),
   });
+  if (publishing) notifyReviewsChanged();
 }
 
 /* ---------- Attendees ---------- */

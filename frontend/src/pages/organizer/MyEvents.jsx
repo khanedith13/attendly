@@ -117,7 +117,7 @@ export default function MyEvents() {
             </div>
           );
         }
-        if (display === "upcoming" || display === "live") {
+        if (["upcoming", "live", "pending", "flagged"].includes(display)) {
           return (
             <div className="row-actions">
               <Button size="sm" variant="outline" onClick={() => goEdit(row)}>
@@ -147,7 +147,7 @@ export default function MyEvents() {
 
       <div className="grid-4">
         <StatCard
-          value={count("upcoming", "live", "closed")}
+          value={count("upcoming", "live", "closed", "pending", "flagged")}
           label="Published"
           icon="▣"
           tone="primary"

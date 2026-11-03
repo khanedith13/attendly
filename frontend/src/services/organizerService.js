@@ -8,6 +8,7 @@ import { toIso } from "../utils/dates";
 import { validateEvent } from "../utils/eventValidation";
 import { percent } from "../utils/format";
 import { toneForCategory } from "../config/events";
+import { findUserById } from "./userStore";
 import {
   addCatalogEvent,
   getCatalog,
@@ -30,6 +31,21 @@ function ownEvent(user, id) {
   const event = getCatalogEvent(id);
   if (!event || event.ownerId !== user.id) throw new ApiError("Event not found.", 404);
   return event;
+}
+
+// Reads the account fresh, so an approval or suspension takes effect immediately.
+function assertApproved(user) {
+  const status = findUserById(user.id)?.status;
+
+  if (status === "pending") {
+    throw new ApiError(
+      "Your organizer account is awaiting approval. You can save drafts, but you cannot publish yet.",
+      403,
+    );
+  }
+  if (status !== "active") {
+    throw new ApiError("Your organizer account is not active.", 403);
+  }
 }
 
 export async function getOrganizerDashboard(user) {
@@ -72,6 +88,7 @@ export async function listMyEvents(user) {
 
 export async function publishEvent(user, id) {
   await delay();
+  assertApproved(user);
   const event = ownEvent(user, id);
 
   if (event.status !== "draft") throw new ApiError("Only draft events can be published.", 409);
@@ -125,6 +142,7 @@ export async function getEventForEdit(user, id) {
 
 export async function createEvent(user, data, { publish = false } = {}) {
   await delay();
+  if (publish) assertApproved(user);
   assertValid(validateEvent(data, { publish }));
 
   const event = {
@@ -143,6 +161,7 @@ export async function createEvent(user, data, { publish = false } = {}) {
 
 export async function updateEvent(user, id, data, { publish = false } = {}) {
   await delay();
+  if (publish && event.status === "draft") assertApproved(user);
   const event = ownEvent(user, id);
 
   if (event.status === "cancelled" || new Date(event.endsAt) < new Date()) {
@@ -236,6 +255,10 @@ function defaultProfile(user) {
     contactNumber: isDemo ? "+63 917 123 4567" : "",
     notifications: { registrations: true, capacity: true, daily: false },
   };
+}
+
+export function organizerProfileOf(user) {
+  return { ...defaultProfile(user), ...storage.getJSON(profileKey(user.id), {}) };
 }
 
 export async function getOrganizerProfile(user) {

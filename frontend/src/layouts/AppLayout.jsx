@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Notice from "../components/Notice";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
@@ -9,9 +10,16 @@ import "./AppLayout.css";
 
 export default function AppLayout({ role }) {
   const { pathname } = useLocation();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [badge, setBadge] = useState(null);
   const [slot, setSlot] = useState(null);
+
+  // Re-check the account whenever the person moves to another page, so approvals
+  // and suspensions take effect without a manual refresh.
+  useEffect(() => {
+    refreshUser();
+  }, [pathname, refreshUser]);
+
   const config = roleConfig[role];
 
   const profile = {
@@ -40,6 +48,12 @@ export default function AppLayout({ role }) {
           slotRef={setSlot}
         />
         <main className="app__content">
+          {role === "organizer" && user.status === "pending" && (
+            <Notice tone="info">
+              Your organizer account is awaiting administrator approval. You can create drafts, but
+              publishing is disabled until you are approved.
+            </Notice>
+          )}
           <Outlet context={{ setBadge, slot }} />
         </main>
       </div>

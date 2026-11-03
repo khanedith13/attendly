@@ -12,3 +12,21 @@
 .row-none {
   color: var(--text-subtle);
 }
+
+.inspect {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 10px 14px;
+  margin: 0 0 18px;
+  font-size: 12px;
+}
+
+.inspect dt {
+  color: var(--text-muted);
+}
+
+.inspect dd {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text);
+}

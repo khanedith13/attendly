@@ -88,6 +88,7 @@ export async function listMyEvents(user) {
 
 export async function publishEvent(user, id) {
   await delay();
+  assertApproved(user);
   const event = ownEvent(user, id);
 
   if (event.status !== "draft") throw new ApiError("Only draft events can be published.", 409);
@@ -141,6 +142,7 @@ export async function getEventForEdit(user, id) {
 
 export async function createEvent(user, data, { publish = false } = {}) {
   await delay();
+  if (publish) assertApproved(user);
   assertValid(validateEvent(data, { publish }));
 
   const event = {
@@ -159,6 +161,7 @@ export async function createEvent(user, data, { publish = false } = {}) {
 
 export async function updateEvent(user, id, data, { publish = false } = {}) {
   await delay();
+  if (publish && event.status === "draft") assertApproved(user);
   const event = ownEvent(user, id);
 
   if (event.status === "cancelled" || new Date(event.endsAt) < new Date()) {
@@ -252,6 +255,10 @@ function defaultProfile(user) {
     contactNumber: isDemo ? "+63 917 123 4567" : "",
     notifications: { registrations: true, capacity: true, daily: false },
   };
+}
+
+export function organizerProfileOf(user) {
+  return { ...defaultProfile(user), ...storage.getJSON(profileKey(user.id), {}) };
 }
 
 export async function getOrganizerProfile(user) {

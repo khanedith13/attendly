@@ -74,7 +74,9 @@ export default function AdminAuditLog() {
     .filter(
       (entry) =>
         !query ||
-        [entry.actor, entry.action, entry.target].some((field) => field.toLowerCase().includes(query)),
+        [entry.actor, entry.action, entry.target].some((field) =>
+          field.toLowerCase().includes(query),
+        ),
     );
 
   const pages = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));

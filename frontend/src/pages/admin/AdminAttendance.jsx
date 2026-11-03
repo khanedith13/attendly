@@ -46,8 +46,16 @@ const columns = [
   { key: "name", header: "Student", render: (row) => <PersonCell name={row.name} /> },
   { key: "studentId", header: "Student ID" },
   { key: "eventTitle", header: "Event" },
-  { key: "in", header: "Time in", render: (row) => (row.timeIn ? formatShortDateTime(row.timeIn) : "—") },
-  { key: "out", header: "Time out", render: (row) => (row.timeOut ? formatShortDateTime(row.timeOut) : "—") },
+  {
+    key: "in",
+    header: "Time in",
+    render: (row) => (row.timeIn ? formatShortDateTime(row.timeIn) : "—"),
+  },
+  {
+    key: "out",
+    header: "Time out",
+    render: (row) => (row.timeOut ? formatShortDateTime(row.timeOut) : "—"),
+  },
   {
     key: "status",
     header: "Status",
@@ -77,7 +85,9 @@ export default function AdminAttendance() {
     .filter(
       (row) =>
         !query ||
-        [row.name, row.studentId, row.eventTitle].some((field) => field.toLowerCase().includes(query)),
+        [row.name, row.studentId, row.eventTitle].some((field) =>
+          field.toLowerCase().includes(query),
+        ),
     );
 
   const pages = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
@@ -131,7 +141,12 @@ export default function AdminAttendance() {
           icon="⌁"
           tone="primary"
         />
-        <StatCard value={count("present").toLocaleString()} label="Present" icon="✓" tone="success" />
+        <StatCard
+          value={count("present").toLocaleString()}
+          label="Present"
+          icon="✓"
+          tone="success"
+        />
         <StatCard value={count("late").toLocaleString()} label="Late" icon="◷" tone="warning" />
         <StatCard value={count("absent").toLocaleString()} label="Absent" icon="✕" tone="info" />
       </div>

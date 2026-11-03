@@ -62,7 +62,8 @@ export default function AdminSettings() {
       reload();
       setMessage({
         tone: "success",
-        text: result.changed === 0 ? "Nothing changed." : `Settings saved (${result.changed} changed).`,
+        text:
+          result.changed === 0 ? "Nothing changed." : `Settings saved (${result.changed} changed).`,
       });
     } catch (error) {
       setErrors(firstErrors(error.errors));

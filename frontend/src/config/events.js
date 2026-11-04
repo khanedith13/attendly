@@ -7,3 +7,5 @@ export const toneForCategory = {
   Career: "amber",
   Community: "blue",
 };
+
+export const coverTone = (event) => toneForCategory[event.category] ?? "violet";

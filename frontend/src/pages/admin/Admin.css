@@ -4,15 +4,6 @@
   margin-top: 16px;
 }
 
-.row-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.row-none {
-  color: var(--text-subtle);
-}
-
 .inspect {
   display: grid;
   grid-template-columns: 100px 1fr;

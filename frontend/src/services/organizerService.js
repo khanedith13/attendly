@@ -226,7 +226,7 @@ export async function getRegistrations(user) {
   const titles = new Map(events.map((event) => [event.id, event.title]));
 
   const rows = getRoster()
-    .filter((row) => titles.has(row.eventId) && ["registered", "waitlisted"].includes(row.status))
+    .filter((row) => titles.has(row.eventId) && row.status === "registered")
     .map((row) => ({ ...row, eventTitle: titles.get(row.eventId) }))
     .sort((a, b) => new Date(b.registeredAt) - new Date(a.registeredAt));
 

@@ -14,12 +14,8 @@ import StatCard from "../../components/StatCard";
 import TicketModal from "../../components/TicketModal";
 import { useAsyncData } from "../../hooks/useAsyncData";
 import { useAuth } from "../../hooks/useAuth";
-import {
-  cancelRegistration,
-  getMyRegistrations,
-  registerForEvent,
-} from "../../services/studentService";
-import { formatDate, formatEventWhen, formatShortDateTime, formatVenue } from "../../utils/format";
+import { cancelRegistration, getMyRegistrations, registerForEvent } from "../../services/studentService";
+import { formatDate, formatEventWhen, formatShortDateTime } from "../../utils/format";
 import "./Registrations.css";
 
 const filters = [
@@ -60,7 +56,7 @@ function RegistrationCard({ item, cancelled, onTicket, onCancel, onRegisterAgain
       <p className="reg-card__meta">
         {formatEventWhen(item.startsAt)}
         <br />
-        {formatVenue(item)}
+        {item.venue}
       </p>
       <div className="reg-card__actions">
         {cancelled ? (

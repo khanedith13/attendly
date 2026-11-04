@@ -58,20 +58,6 @@ function seedRoster() {
       });
     }
   }
-
-  // A few waitlisted students (demo only; waiting lists are not in the ERD).
-  for (let i = 0; i < 4; i++) {
-    rows.push({
-      id: 103 * 100000 + 90000 + i,
-      eventId: 103,
-      ...fakeStudent(103, 500 + i),
-      registeredAt: new Date(now - (i + 1) * HOUR * 5).toISOString(),
-      status: "waitlisted",
-      timeIn: null,
-      timeOut: null,
-    });
-  }
-
   return rows;
 }
 

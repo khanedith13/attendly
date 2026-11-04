@@ -14,7 +14,6 @@ export const attendeeMeta = {
 
 export const registrationMeta = {
   registered: { label: "Confirmed", tone: "info" },
-  waitlisted: { label: "Waitlisted", tone: "warning" },
 };
 
 // "present" | "late" | "absent", or null while the event is still going on.

@@ -11,7 +11,7 @@ export function dayAt(offsetDays, hour, minute) {
   return date.toISOString();
 }
 
-function make({ day, start, end, ...fields }) {
+function make({ day, start, end, campus, ...fields }) {
   return {
     description: "",
     status: "published", // "draft" | "published" | "cancelled"
@@ -19,7 +19,6 @@ function make({ day, start, end, ...fields }) {
     reviewNote: "",
     ownerId: DEMO_ORGANIZER_ID,
     organizer: "Events Team",
-    campus: "",
     requireSchoolGmail: true,
     sendConfirmation: true,
     registered: 0,
@@ -30,6 +29,8 @@ function make({ day, start, end, ...fields }) {
     startsAt: dayAt(day, start[0], start[1]),
     endsAt: dayAt(day, end[0], end[1]),
     ...fields,
+    // One venue text, like the database: "Innovation Hall, Main Campus".
+    venue: [fields.venue, campus].filter(Boolean).join(", "),
   };
 }
 

@@ -18,7 +18,7 @@ import { approveEvent, flagEvent, listAdminEvents } from "../../services/adminSe
 import { firstErrors } from "../../utils/apiErrors";
 import { downloadCsv } from "../../utils/csv";
 import { getDisplayStatus, statusMeta } from "../../utils/eventStatus";
-import { formatDay, formatEventWhen, formatVenue } from "../../utils/format";
+import { formatDay, formatEventWhen } from "../../utils/format";
 import "./Admin.css";
 
 const PAGE_SIZE = 10;
@@ -44,7 +44,7 @@ function InspectModal({ event, display, onClose }) {
         <dt>When</dt>
         <dd>{formatEventWhen(event.startsAt)}</dd>
         <dt>Venue</dt>
-        <dd>{formatVenue(event)}</dd>
+        <dd>{event.venue}</dd>
         <dt>Category</dt>
         <dd>{event.category}</dd>
         <dt>Seats</dt>

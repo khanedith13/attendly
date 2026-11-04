@@ -43,7 +43,7 @@ function valuesFromEvent(event) {
     date: toDateInput(event.startsAt),
     startTime: toTimeInput(event.startsAt),
     endTime: toTimeInput(event.endsAt),
-    venue: [event.venue, event.campus].filter(Boolean).join(", "),
+    venue: event.venue,
     description: event.description ?? "",
     requireSchoolGmail: event.requireSchoolGmail,
     sendConfirmation: event.sendConfirmation,

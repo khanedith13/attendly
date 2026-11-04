@@ -17,6 +17,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { cancelRegistration, getMyRegistrations, registerForEvent } from "../../services/studentService";
 import { formatDate, formatEventWhen, formatShortDateTime } from "../../utils/format";
 import "./Registrations.css";
+import { coverTone } from "../../config/events";
 
 const filters = [
   { value: "all", label: "All" },
@@ -49,7 +50,7 @@ function RegistrationCard({ item, cancelled, onTicket, onCancel, onRegisterAgain
   return (
     <Card>
       <div className="reg-card__cover">
-        <EventCover tone={item.tone} height={72} />
+        <EventCover tone={coverTone(item)} height={72} />
       </div>
       <Pill tone={cancelled ? "danger" : "success"}>{cancelled ? "Cancelled" : "Registered"}</Pill>
       <h3 className="reg-card__title">{item.title}</h3>

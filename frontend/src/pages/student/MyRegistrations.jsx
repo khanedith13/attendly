@@ -14,7 +14,11 @@ import StatCard from "../../components/StatCard";
 import TicketModal from "../../components/TicketModal";
 import { useAsyncData } from "../../hooks/useAsyncData";
 import { useAuth } from "../../hooks/useAuth";
-import { cancelRegistration, getMyRegistrations, registerForEvent } from "../../services/studentService";
+import {
+  cancelRegistration,
+  getMyRegistrations,
+  registerForEvent,
+} from "../../services/studentService";
 import { formatDate, formatEventWhen, formatShortDateTime } from "../../utils/format";
 import "./Registrations.css";
 import { coverTone } from "../../config/events";

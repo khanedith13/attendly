@@ -211,16 +211,9 @@ export default function OrganizerRegistrations() {
           </div>
         </div>
 
-        <div className="roster-tiles roster-tiles--3">
+        <div className="roster-tiles roster-tiles--2">
           <MiniStat label="Upcoming events" value={upcoming} />
-          <MiniStat
-            label="Total registrations"
-            value={scoped.filter((row) => row.status === "registered").length.toLocaleString()}
-          />
-          <MiniStat
-            label="Waiting list"
-            value={scoped.filter((row) => row.status === "waitlisted").length.toLocaleString()}
-          />
+          <MiniStat label="Total registrations" value={scoped.length.toLocaleString()} />
         </div>
 
         <div className="roster-note" />

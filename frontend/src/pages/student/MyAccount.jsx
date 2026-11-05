@@ -20,6 +20,7 @@ import { joinName, splitName } from "../../utils/names";
 import { getInitials } from "../../utils/roles";
 import { isStudentId } from "../../utils/validators";
 import "./Account.css";
+import { firstErrors } from "../../utils/apiErrors";
 
 export default function MyAccount() {
   const { user, refreshUser } = useAuth();
@@ -88,7 +89,11 @@ export default function MyAccount() {
       reload();
       setMessage({ tone: "success", text: "Your changes were saved." });
     } catch (error) {
-      setMessage({ tone: "danger", text: error.message });
+      setErrors(firstErrors(error.errors));
+      setMessage({
+        tone: "danger",
+        text: error.status === 422 ? "Please fix the highlighted fields." : error.message,
+      });
     } finally {
       setSaving(false);
     }

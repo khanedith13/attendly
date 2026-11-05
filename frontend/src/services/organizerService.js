@@ -9,7 +9,6 @@ import { toApiErrors } from "../utils/apiErrors";
 import { toIso } from "../utils/dates";
 import { validateEvent } from "../utils/eventValidation";
 import { percent } from "../utils/format";
-import { toneForCategory } from "../config/events";
 import { findUserById } from "./userStore";
 import {
   addCatalogEvent,
@@ -122,7 +121,6 @@ function fieldsFromForm(data) {
     title: data.title.trim(),
     description: data.description.trim(),
     venue: data.venue.trim(),
-    campus: "",
     category: data.category,
     capacity: Number(data.capacity),
     startsAt: toIso(data.date, data.startTime),
@@ -131,7 +129,6 @@ function fieldsFromForm(data) {
     sendConfirmation: data.sendConfirmation,
     qrIn: data.qrIn,
     qrOut: data.qrOut,
-    tone: toneForCategory[data.category],
   };
 }
 
@@ -226,7 +223,7 @@ export async function getRegistrations(user) {
   const titles = new Map(events.map((event) => [event.id, event.title]));
 
   const rows = getRoster()
-    .filter((row) => titles.has(row.eventId) && ["registered", "waitlisted"].includes(row.status))
+    .filter((row) => titles.has(row.eventId) && row.status === "registered")
     .map((row) => ({ ...row, eventTitle: titles.get(row.eventId) }))
     .sort((a, b) => new Date(b.registeredAt) - new Date(a.registeredAt));
 

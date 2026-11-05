@@ -19,8 +19,9 @@ import {
   getMyRegistrations,
   registerForEvent,
 } from "../../services/studentService";
-import { formatDate, formatEventWhen, formatShortDateTime, formatVenue } from "../../utils/format";
+import { formatDate, formatEventWhen, formatShortDateTime } from "../../utils/format";
 import "./Registrations.css";
+import { coverTone } from "../../config/events";
 
 const filters = [
   { value: "all", label: "All" },
@@ -53,14 +54,14 @@ function RegistrationCard({ item, cancelled, onTicket, onCancel, onRegisterAgain
   return (
     <Card>
       <div className="reg-card__cover">
-        <EventCover tone={item.tone} height={72} />
+        <EventCover tone={coverTone(item)} height={72} />
       </div>
       <Pill tone={cancelled ? "danger" : "success"}>{cancelled ? "Cancelled" : "Registered"}</Pill>
       <h3 className="reg-card__title">{item.title}</h3>
       <p className="reg-card__meta">
         {formatEventWhen(item.startsAt)}
         <br />
-        {formatVenue(item)}
+        {item.venue}
       </p>
       <div className="reg-card__actions">
         {cancelled ? (

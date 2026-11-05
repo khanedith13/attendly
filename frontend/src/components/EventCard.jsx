@@ -1,8 +1,9 @@
-import { formatEventWhen, formatVenue } from "../utils/format";
+import { formatEventWhen } from "../utils/format";
 import Button from "./Button";
 import EventCover from "./EventCover";
 import Pill from "./Pill";
 import "./EventCard.css";
+import { coverTone } from "../config/events";
 
 export default function EventCard({ event, onRegister, busy }) {
   const registered = event.myStatus === "registered";
@@ -10,11 +11,11 @@ export default function EventCard({ event, onRegister, busy }) {
 
   return (
     <article className="event-card">
-      <EventCover tone={event.tone} />
+      <EventCover tone={coverTone(event)} />
       <div className="event-card__body">
         <div className="event-card__when">{formatEventWhen(event.startsAt)}</div>
         <h3 className="event-card__title">{event.title}</h3>
-        <div className="event-card__meta">{formatVenue(event)}</div>
+        <div className="event-card__meta">{event.venue}</div>
 
         <div className="event-card__foot">
           <span>{event.capacity} seats</span>

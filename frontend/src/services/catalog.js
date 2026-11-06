@@ -1,4 +1,5 @@
 import { storage } from "../utils/storage";
+import { uuid } from "../utils/uuid";
 
 const EVENTS_KEY = "attendly_events_v1";
 const DEMO_ORGANIZER_ID = 3; // the demo organizer in authService
@@ -23,8 +24,8 @@ function make({ day, start, end, campus, ...fields }) {
     sendConfirmation: true,
     registered: 0,
     checkedIn: 0,
-    qrIn: crypto.randomUUID(),
-    qrOut: crypto.randomUUID(),
+    qrIn: uuid(),
+    qrOut: uuid(),
     createdAt: dayAt(day - 14, 9, 0),
     startsAt: dayAt(day, start[0], start[1]),
     endsAt: dayAt(day, end[0], end[1]),

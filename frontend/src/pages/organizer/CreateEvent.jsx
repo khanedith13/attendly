@@ -21,6 +21,7 @@ import { toDateInput, toTimeInput } from "../../utils/dates";
 import { getDisplayStatus } from "../../utils/eventStatus";
 import { validateEvent } from "../../utils/eventValidation";
 import "./EventForm.css";
+import { uuid } from "../../utils/uuid";
 
 const emptyValues = {
   title: "",
@@ -64,7 +65,7 @@ export default function CreateEvent() {
   const [edits, setEdits] = useState({});
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const [newCodes] = useState(() => ({ in: crypto.randomUUID(), out: crypto.randomUUID() }));
+  const [newCodes] = useState(() => ({ in: uuid(), out: uuid() }));
   const [refreshedCodes, setRefreshedCodes] = useState(null);
 
   useTopbarNone();
@@ -310,9 +311,7 @@ export default function CreateEvent() {
             <Button
               size="sm"
               variant="outline"
-              onClick={() =>
-                setRefreshedCodes({ in: crypto.randomUUID(), out: crypto.randomUUID() })
-              }
+              onClick={() => setRefreshedCodes({ in: uuid(), out: uuid() })}
             >
               Refresh codes
             </Button>

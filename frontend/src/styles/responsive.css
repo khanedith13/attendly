@@ -93,6 +93,18 @@
     width: 100% !important;
   }
 
+  /* Grid children may shrink, so a wide table scrolls inside its card instead of stretching the page */
+  .grid-2 > *,
+  .grid-3 > *,
+  .grid-4 > *,
+  .attendance-grid > *,
+  .event-form > *,
+  .account-grid > *,
+  .org-grid > *,
+  .settings-grid > * {
+    min-width: 0;
+  }
+
   /* Wide tables scroll sideways inside their card */
   .table {
     min-width: 640px;

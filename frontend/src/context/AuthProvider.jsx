@@ -3,6 +3,8 @@ import { ApiError } from "../api/ApiError";
 import * as authService from "../services/authService";
 import { AuthContext } from "./AuthContext";
 
+const accountLabel = { student: "a student", organizer: "an organizer", admin: "an admin" };
+
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -22,7 +24,7 @@ export default function AuthProvider({ children }) {
     if (expectedRole && loggedIn.role !== expectedRole) {
       await authService.logout();
       throw new ApiError(
-        `This is a ${loggedIn.role} account. Select the ${loggedIn.role} tab.`,
+        `This is ${accountLabel[loggedIn.role]} account. Select the ${loggedIn.role} tab.`,
         403,
       );
     }

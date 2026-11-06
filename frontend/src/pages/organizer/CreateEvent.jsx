@@ -311,9 +311,7 @@ export default function CreateEvent() {
             <Button
               size="sm"
               variant="outline"
-              onClick={() =>
-                setRefreshedCodes({ in: uuid(), out: uuid() })
-              }
+              onClick={() => setRefreshedCodes({ in: uuid(), out: uuid() })}
             >
               Refresh codes
             </Button>

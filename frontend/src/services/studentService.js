@@ -9,7 +9,7 @@ const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms));
 const stateKey = (userId) => `attendly_student_v2_${userId}`;
 const newToken = () => crypto.randomUUID();
 const byStart = (a, b) => new Date(a.startsAt) - new Date(b.startsAt);
-const isOpen = (event) => event.status === "published";
+const isOpen = (event) => event.status === "published" && (event.review ?? "approved") === "approved";
 const courseOf = (state, userId) =>
   state.profile?.course ?? (userId === DEMO_STUDENT_ID ? "BS Information Technology" : "");
 

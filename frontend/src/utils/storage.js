@@ -10,14 +10,29 @@ function read(key, fallback) {
   }
 }
 
-export const storage = {
-  getSession: () => read(SESSION_KEY, { token: null, user: null }),
-  setSession: (session) => localStorage.setItem(SESSION_KEY, JSON.stringify(session)),
-  clearSession: () => localStorage.removeItem(SESSION_KEY),
+// "Remember me" keeps the session after the browser closes (localStorage).
+// Without it the session lives only in this tab (sessionStorage).
+function readSession() {
+  for (const store of [localStorage, sessionStorage]) {
+    try {
+      const raw = store.getItem(SESSION_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {
+      // ignore broken data
+    }
+  }
+  return { token: null, user: null };
+}
 
-  getJSON: (key, fallback) => read(key, fallback),
-  setJSON: (key, value) => localStorage.setItem(key, JSON.stringify(value)),
-  // Mock only: accounts created through the Register form
-  getMockUsers: () => read(MOCK_USERS_KEY, []),
-  setMockUsers: (users) => localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users)),
-};
+export const storage = {
+  getSession: readSession,
+  setSession: (session, { remember = true } = {}) => {
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+    (remember ? localStorage : sessionStorage).setItem(SESSION_KEY, JSON.stringify(session));
+  },
+  clearSession: () => {
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+  }
+}

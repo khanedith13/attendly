@@ -11,7 +11,7 @@ function publicUser({ id, name, email, role, status }) {
   return { id, name, email, role, status };
 }
 
-export async function login({ email, password }) {
+export async function login({ email, password, remember = true }) {
   await delay();
   const cleanEmail = email.trim().toLowerCase();
   const found = findUserByEmail(cleanEmail);
@@ -42,7 +42,7 @@ export async function login({ email, password }) {
 
   const user = publicUser(found);
   const token = `mock-token-${found.id}`;
-  storage.setSession({ token, user });
+  storage.setSession({ token, user }, { remember });
   logAudit({ actor: found.name, role: found.role, action: "Logged in", target: found.email });
   return { user, token };
 }

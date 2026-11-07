@@ -1,14 +1,4 @@
 const SESSION_KEY = "attendly_session";
-const MOCK_USERS_KEY = "attendly_mock_users";
-
-function read(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
-}
 
 // "Remember me" keeps the session after the browser closes (localStorage).
 // Without it the session lives only in this tab (sessionStorage).
@@ -34,5 +24,5 @@ export const storage = {
   clearSession: () => {
     localStorage.removeItem(SESSION_KEY);
     sessionStorage.removeItem(SESSION_KEY);
-  }
-}
+  },
+};

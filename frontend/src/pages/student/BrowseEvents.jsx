@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import Chip from "../../components/Chip";
@@ -28,7 +28,9 @@ export default function BrowseEvents() {
   const [busyId, setBusyId] = useState(null);
   const [message, setMessage] = useState(null);
 
-  useTopbarIcon("⌕");
+  const searchRef = useRef(null);
+  const focusSearch = useCallback(() => searchRef.current?.focus(), []);
+  useTopbarIcon("⌕", focusSearch);
 
   if (loading) return <LoadingBlock />;
 
@@ -77,6 +79,7 @@ export default function BrowseEvents() {
 
       <div className="toolbar">
         <SearchInput
+          ref={searchRef}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search event name, organizer, or topic"

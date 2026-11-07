@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import ForgotPasswordModal from "../../components/ForgotPasswordModal";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import FormField from "../../components/FormField";
@@ -51,6 +52,8 @@ export default function Login() {
   const [form, setForm] = useState({ email: "", password: "", remember: false });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
+  const closeForgot = useCallback(() => setShowForgot(false), []);
 
   function handleChange(event) {
     const { name, value, type, checked } = event.target;
@@ -74,7 +77,10 @@ export default function Login() {
 
     setSubmitting(true);
     try {
-      const user = await login({ email: form.email, password: form.password }, role);
+      const user = await login(
+        { email: form.email, password: form.password, remember: form.remember },
+        role,
+      );
       navigate(homePath(user.role), { replace: true });
     } catch (error) {
       setErrors({
@@ -131,7 +137,7 @@ export default function Login() {
             />
             Remember me
           </label>
-          <button type="button" className="auth__link-btn">
+          <button type="button" className="auth__link-btn" onClick={() => setShowForgot(true)}>
             Forgot password?
           </button>
         </div>
@@ -146,6 +152,7 @@ export default function Login() {
       <p className="auth__foot">
         New to Attendly? <Link to="/register">Create an account</Link>
       </p>
+      {showForgot && <ForgotPasswordModal initialEmail={form.email} onClose={closeForgot} />}
     </AuthLayout>
   );
 }

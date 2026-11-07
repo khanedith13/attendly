@@ -15,6 +15,20 @@ function readSession() {
 }
 
 export const storage = {
+  getJSON: (key, fallback) => {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return fallback;
+
+    try {
+      return JSON.parse(raw);
+    } catch (error) {
+      if (error instanceof SyntaxError) return fallback;
+      throw error;
+    }
+  },
+  setJSON: (key, value) => {
+    localStorage.setItem(key, JSON.stringify(value));
+  },
   getSession: readSession,
   setSession: (session, { remember = true } = {}) => {
     localStorage.removeItem(SESSION_KEY);

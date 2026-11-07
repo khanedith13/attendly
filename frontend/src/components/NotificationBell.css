@@ -94,3 +94,13 @@
 .bell__tone--danger {
   background: var(--danger-text);
 }
+
+@media (max-width: 560px) {
+  .bell__panel {
+    position: fixed;
+    top: calc(var(--topbar-height) + 8px);
+    right: 16px;
+    width: min(320px, calc(100vw - 32px));
+    max-width: none;
+  }
+}

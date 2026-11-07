@@ -12,13 +12,13 @@ export function useTopbarBadge(tone, text) {
 }
 
 // Show an icon button (instead of the bell) in the topbar.
-export function useTopbarIcon(icon) {
+export function useTopbarIcon(icon, onClick) {
   const { setBadge } = useOutletContext();
 
   useEffect(() => {
-    setBadge({ icon });
+    setBadge({ icon, onClick });
     return () => setBadge(null);
-  }, [setBadge, icon]);
+  }, [setBadge, icon, onClick]);
 }
 
 // Hide the bell/pill so only the avatar shows.

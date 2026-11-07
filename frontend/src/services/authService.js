@@ -133,3 +133,18 @@ export async function changePassword(userId, { currentPassword, newPassword }) {
     readUsers().map((user) => (user.id === userId ? { ...user, password: newPassword } : user)),
   );
 }
+
+// The answer is always the same, so nobody can use this to find out which emails have accounts.
+export async function requestPasswordReset(email) {
+  await delay();
+  const found = findUserByEmail(email.trim().toLowerCase());
+
+  if (found) {
+    logAudit({
+      actor: found.name,
+      role: found.role,
+      action: "Password reset requested",
+      target: found.email,
+    });
+  }
+}

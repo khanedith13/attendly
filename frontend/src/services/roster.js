@@ -46,8 +46,9 @@ function seedRoster() {
         id: event.id * 100000 + i,
         eventId: event.id,
         ...person,
+        // Registered at least two days ago, and never after the event began.
         registeredAt: new Date(
-          start - (1 + (i % 12)) * DAY - ((i * 3571) % 80000) * 1000,
+          Math.min(start, now) - (2 + (i % 12)) * DAY - ((i * 3571) % 80000) * 1000,
         ).toISOString(),
         status: "registered",
         timeIn: arrived ? new Date(start + (((i * 5) % 50) - 12) * 60000).toISOString() : null,

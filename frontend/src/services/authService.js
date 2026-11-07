@@ -11,7 +11,7 @@ function publicUser({ id, name, email, role, status }) {
   return { id, name, email, role, status };
 }
 
-export async function login({ email, password }) {
+export async function login({ email, password, remember = true }) {
   await delay();
   const cleanEmail = email.trim().toLowerCase();
   const found = findUserByEmail(cleanEmail);
@@ -42,7 +42,7 @@ export async function login({ email, password }) {
 
   const user = publicUser(found);
   const token = `mock-token-${found.id}`;
-  storage.setSession({ token, user });
+  storage.setSession({ token, user }, { remember });
   logAudit({ actor: found.name, role: found.role, action: "Logged in", target: found.email });
   return { user, token };
 }
@@ -132,4 +132,19 @@ export async function changePassword(userId, { currentPassword, newPassword }) {
   saveUsers(
     readUsers().map((user) => (user.id === userId ? { ...user, password: newPassword } : user)),
   );
+}
+
+// The answer is always the same, so nobody can use this to find out which emails have accounts.
+export async function requestPasswordReset(email) {
+  await delay();
+  const found = findUserByEmail(email.trim().toLowerCase());
+
+  if (found) {
+    logAudit({
+      actor: found.name,
+      role: found.role,
+      action: "Password reset requested",
+      target: found.email,
+    });
+  }
 }

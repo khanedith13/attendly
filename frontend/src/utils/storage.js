@@ -1,23 +1,42 @@
 const SESSION_KEY = "attendly_session";
-const MOCK_USERS_KEY = "attendly_mock_users";
 
-function read(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
+// "Remember me" keeps the session after the browser closes (localStorage).
+// Without it the session lives only in this tab (sessionStorage).
+function readSession() {
+  for (const store of [localStorage, sessionStorage]) {
+    try {
+      const raw = store.getItem(SESSION_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {
+      // ignore broken data
+    }
   }
+  return { token: null, user: null };
 }
 
 export const storage = {
-  getSession: () => read(SESSION_KEY, { token: null, user: null }),
-  setSession: (session) => localStorage.setItem(SESSION_KEY, JSON.stringify(session)),
-  clearSession: () => localStorage.removeItem(SESSION_KEY),
+  getJSON: (key, fallback) => {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return fallback;
 
-  getJSON: (key, fallback) => read(key, fallback),
-  setJSON: (key, value) => localStorage.setItem(key, JSON.stringify(value)),
-  // Mock only: accounts created through the Register form
-  getMockUsers: () => read(MOCK_USERS_KEY, []),
-  setMockUsers: (users) => localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users)),
+    try {
+      return JSON.parse(raw);
+    } catch (error) {
+      if (error instanceof SyntaxError) return fallback;
+      throw error;
+    }
+  },
+  setJSON: (key, value) => {
+    localStorage.setItem(key, JSON.stringify(value));
+  },
+  getSession: readSession,
+  setSession: (session, { remember = true } = {}) => {
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+    (remember ? localStorage : sessionStorage).setItem(SESSION_KEY, JSON.stringify(session));
+  },
+  clearSession: () => {
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+  },
 };

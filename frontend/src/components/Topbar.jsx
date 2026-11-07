@@ -1,4 +1,5 @@
 import Avatar from "./Avatar";
+import NotificationBell from "./NotificationBell";
 import Pill from "./Pill";
 import ReviewPill from "./ReviewPill";
 import "./Topbar.css";
@@ -17,17 +18,13 @@ export default function Topbar({
     if (badge?.text) return <Pill tone={badge.tone}>{badge.text}</Pill>;
     if (badge?.icon) {
       return (
-        <button type="button" className="icon-btn" aria-label="Search">
+        <button type="button" className="icon-btn" aria-label="Search" onClick={badge.onClick}>
           {badge.icon}
         </button>
       );
     }
     if (variant === "reviews") return <ReviewPill />;
-    return (
-      <button type="button" className="icon-btn" aria-label="Notifications">
-        ♢<span className="icon-btn__dot" />
-      </button>
-    );
+    return <NotificationBell />;
   }
 
   return (

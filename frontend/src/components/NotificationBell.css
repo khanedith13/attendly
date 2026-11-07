@@ -1,0 +1,96 @@
+.bell {
+    position: relative;
+  }
+  
+  .bell__panel {
+    position: absolute;
+    top: 46px;
+    right: 0;
+    z-index: 30;
+    width: 320px;
+    max-width: calc(100vw - 32px);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+    box-shadow: var(--shadow-popover);
+  }
+  
+  .bell__head {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-soft);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  
+  .bell__empty {
+    margin: 0;
+    padding: 28px 16px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  
+  .bell__list {
+    max-height: 360px;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+  }
+  
+  .bell__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 16px;
+    border: 0;
+    border-bottom: 1px solid var(--border-soft);
+    background: none;
+    text-align: left;
+    cursor: pointer;
+  }
+  
+  .bell__item:hover {
+    background: var(--bg);
+  }
+  
+  .bell__item b {
+    display: block;
+    font-size: 12px;
+    color: var(--text);
+  }
+  
+  .bell__item small {
+    display: block;
+    margin-top: 3px;
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--text-muted);
+  }
+  
+  .bell__tone {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    margin-top: 4px;
+    border-radius: 50%;
+  }
+  
+  .bell__tone--info {
+    background: var(--info-text);
+  }
+  
+  .bell__tone--success {
+    background: var(--success-text);
+  }
+  
+  .bell__tone--warning {
+    background: var(--warning-text);
+  }
+  
+  .bell__tone--danger {
+    background: var(--danger-text);
+  }

@@ -86,12 +86,21 @@ export default function StudentDashboard() {
 
   return (
     <>
-      <PageHeader
-        eyebrow={getGreeting()}
-        title={`${firstName}, ready for today?`}
-        subtitle="Track attendance, discover campus events, and keep your records up to date."
-        actions={<Button onClick={() => navigate("/student/events")}>+ Browse events</Button>}
-      />
+      <div className="student-dashboard__welcome">
+        <PageHeader
+          eyebrow={getGreeting()}
+          title={`${firstName}, ready for today?`}
+          subtitle="Track attendance, discover campus events, and keep your records up to date."
+          actions={
+            <Button
+              className="student-dashboard__cta"
+              onClick={() => navigate("/student/events")}
+            >
+              Explore events <span aria-hidden="true">→</span>
+            </Button>
+          }
+        />
+      </div>
 
       <div className="grid-4">
         <StatCard value={stats.attended} label="Events attended" icon="✓" tone="primary" />

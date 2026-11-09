@@ -28,7 +28,7 @@
 
 .field__input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .field__input--error {

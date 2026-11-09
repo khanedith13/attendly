@@ -11,5 +11,5 @@
 .inline-select:focus {
   border-color: var(--primary);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }

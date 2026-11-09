@@ -13,7 +13,7 @@
   padding: 68px;
   overflow: hidden;
   color: #fff;
-  background: linear-gradient(135deg, #312e81 0%, #4338ca 55%, #7c3aed 100%);
+  background: var(--gradient-cover);
 }
 
 .auth__art::after {
@@ -48,7 +48,7 @@
   max-width: 500px;
   font-size: 14px;
   line-height: 1.6;
-  color: #ddd6fe;
+  color: var(--navy-text);
 }
 
 .art-card {
@@ -64,7 +64,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 11px;
-  color: #ddd6fe;
+  color: var(--navy-text);
 }
 
 .art-card__row b {
@@ -88,7 +88,7 @@
 .art-card__label,
 .art-bar__label {
   font-size: 10px;
-  color: #ddd6fe;
+  color: var(--navy-text);
 }
 
 .art-bar {
@@ -138,7 +138,7 @@
   display: block;
   margin-top: 6px;
   font-size: 9px;
-  color: #ddd6fe;
+  color: var(--navy-text);
 }
 
 /* ---------- Right form panel ---------- */

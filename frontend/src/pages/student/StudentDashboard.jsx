@@ -92,10 +92,7 @@ export default function StudentDashboard() {
           title={`${firstName}, ready for today?`}
           subtitle="Track attendance, discover campus events, and keep your records up to date."
           actions={
-            <Button
-              className="student-dashboard__cta"
-              onClick={() => navigate("/student/events")}
-            >
+            <Button className="student-dashboard__cta" onClick={() => navigate("/student/events")}>
               Explore events <span aria-hidden="true">→</span>
             </Button>
           }

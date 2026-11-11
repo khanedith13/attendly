@@ -11,6 +11,7 @@ import { useAsyncData } from "../../hooks/useAsyncData";
 import { useAuth } from "../../hooks/useAuth";
 import { useTopbarBadge } from "../../hooks/useTopbarBadge";
 import { checkIn, getAttendanceInData } from "../../services/studentService";
+import { getCatalog } from "../../services/catalog";
 import { firstErrors } from "../../utils/apiErrors";
 import { formatShortDateTime, formatTime } from "../../utils/format";
 import { isStudentId } from "../../utils/validators";
@@ -24,6 +25,7 @@ export default function AttendanceIn() {
   const studentIdRef = useRef(null);
   const [edits, setEdits] = useState({});
   const [errors, setErrors] = useState({});
+  const [scanMessage, setScanMessage] = useState(null);
   const [success, setSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -44,6 +46,39 @@ export default function AttendanceIn() {
     const { name, value } = event.target;
     setEdits((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: undefined, form: undefined }));
+    setSuccess("");
+  }
+
+  function handleScan(value) {
+    let token;
+    try {
+      const path = new URL(value).pathname;
+      const match = path.match(/^\/check-in\/([^/]+)$/);
+      if (!match) throw new Error("This QR code is not an attendance-in code.");
+      token = decodeURIComponent(match[1]);
+    } catch (error) {
+      setScanMessage({
+        tone: "danger",
+        text:
+          error instanceof TypeError
+            ? "This QR code is not a valid attendance link."
+            : error.message,
+      });
+      return;
+    }
+
+    const event = getCatalog().find((item) => item.qrIn === token);
+    if (!event || !data.events.some((item) => item.id === event.id)) {
+      setScanMessage({
+        tone: "danger",
+        text: "This event QR is invalid or you are not registered for this event.",
+      });
+      return;
+    }
+
+    setEdits((prev) => ({ ...prev, eventId: String(event.id) }));
+    setErrors({});
+    setScanMessage({ tone: "success", text: `${event.title} selected for attendance in.` });
     setSuccess("");
   }
 
@@ -94,7 +129,9 @@ export default function AttendanceIn() {
           <ScannerPreview
             hint="Point your camera at the attendance QR"
             caption="Camera preview • QR scanner"
+            onScan={handleScan}
           />
+          {scanMessage && <Notice tone={scanMessage.tone}>{scanMessage.text}</Notice>}
           <div className="attendance__center">
             <Button variant="outline" onClick={() => studentIdRef.current?.focus()}>
               Use manual entry instead

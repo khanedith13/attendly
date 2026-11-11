@@ -1,8 +1,7 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
-import FormField from "../../components/FormField";
 import LoadingBlock from "../../components/LoadingBlock";
 import Notice from "../../components/Notice";
 import PageHeader from "../../components/PageHeader";
@@ -15,7 +14,6 @@ import { getCatalog } from "../../services/catalog";
 import { checkOut, getAttendanceOutData } from "../../services/studentService";
 import { firstErrors } from "../../utils/apiErrors";
 import { formatDuration, formatTime } from "../../utils/format";
-import { isStudentId } from "../../utils/validators";
 import "./Attendance.css";
 
 export default function AttendanceOut() {
@@ -25,9 +23,7 @@ export default function AttendanceOut() {
   const { data, loading, reload } = useAsyncData(load);
   const now = useNow();
 
-  const studentIdRef = useRef(null);
-  const [typedId, setTypedId] = useState(null);
-  const [fieldError, setFieldError] = useState("");
+  const [scanConfirmed, setScanConfirmed] = useState(false);
   const [formError, setFormError] = useState("");
   const [scanMessage, setScanMessage] = useState(null);
   const [success, setSuccess] = useState("");
@@ -40,17 +36,8 @@ export default function AttendanceOut() {
 
   if (loading) return <LoadingBlock />;
 
-  const studentId = typedId ?? active?.studentId ?? data.studentId ?? "";
-
-  function handleChange(event) {
-    setTypedId(event.target.value);
-    setFieldError("");
-    setFormError("");
-    setScanMessage(null);
-    setSuccess("");
-  }
-
   function handleScan(value) {
+    setScanConfirmed(false);
     let token;
     try {
       const path = new URL(value).pathname;
@@ -81,27 +68,29 @@ export default function AttendanceOut() {
       tone: "success",
       text: `Checkout QR confirmed for ${active.eventTitle}.`,
     });
+    setScanConfirmed(true);
     setFormError("");
-    setFieldError("");
+    setSuccess("");
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
 
-    if (!studentId.trim()) return setFieldError("Student ID is required.");
-    if (!isStudentId(studentId)) return setFieldError("Use the format 2026-10452.");
+    if (!active || !scanConfirmed) {
+      setFormError("Scan the checkout QR code for your active event to continue.");
+      return;
+    }
 
     setSubmitting(true);
     try {
-      const entry = await checkOut(user, { studentId: studentId.trim() });
+      const entry = await checkOut(user, { studentId: active.studentId });
       const duration = formatDuration(new Date(entry.timeOut) - new Date(entry.timeIn));
       setSuccess(`Checked out of ${entry.event}. Total time: ${duration}.`);
-      setTypedId(null);
+      setScanConfirmed(false);
       reload();
     } catch (error) {
       const fields = firstErrors(error.errors);
-      setFieldError(fields.studentId ?? "");
-      setFormError(error.status === 422 ? "" : error.message);
+      setFormError(fields.studentId ?? error.message);
     } finally {
       setSubmitting(false);
     }
@@ -112,7 +101,7 @@ export default function AttendanceOut() {
       <PageHeader
         eyebrow="Departure"
         title="Attendance Out"
-        subtitle="Complete your attendance record when leaving the event."
+        subtitle="Scan the checkout QR for your active event, then confirm."
       />
 
       <div className="attendance-grid">
@@ -123,11 +112,6 @@ export default function AttendanceOut() {
             onScan={handleScan}
           />
           {scanMessage && <Notice tone={scanMessage.tone}>{scanMessage.text}</Notice>}
-          <div className="attendance__center">
-            <Button variant="outline" onClick={() => studentIdRef.current?.focus()}>
-              Use manual entry instead
-            </Button>
-          </div>
         </Card>
 
         <Card title="Current attendance">
@@ -154,18 +138,13 @@ export default function AttendanceOut() {
                 onSubmit={handleSubmit}
                 noValidate
               >
-                <FormField
-                  ref={studentIdRef}
-                  id="studentId"
-                  name="studentId"
-                  label="Student ID"
-                  placeholder="2026-10452"
-                  value={studentId}
-                  onChange={handleChange}
-                  error={fieldError}
-                />
                 {formError && <Notice>{formError}</Notice>}
-                <Button type="submit" size="lg" className="btn--block" disabled={submitting}>
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="btn--block"
+                  disabled={submitting || !scanConfirmed}
+                >
                   {submitting ? "Confirming..." : "Confirm attendance out"}
                 </Button>
                 <p className="attendance__footnote">

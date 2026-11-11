@@ -356,7 +356,7 @@ export async function checkIn(user, { studentId, email, eventId, selfie }) {
     registeredAt: registration.registeredAt,
   };
   saveState(user.id, { ...state, studentId, activeSession: session });
-  markCheckIn(event.id, user.id, checkedInAt);
+  markCheckIn(event.id, user.id, checkedInAt, selfie);
   adjustCounts(event.id, { checkedIn: 1 });
   return session;
 }
@@ -392,7 +392,7 @@ export async function checkOut(user, { studentId, selfie }) {
     registeredAt: session.registeredAt,
   };
 
-  markCheckOut(session.eventId, user.id, entry.timeOut);
+  markCheckOut(session.eventId, user.id, entry.timeOut, selfie);
   saveState(user.id, {
     ...state,
     history: [entry, ...state.history],

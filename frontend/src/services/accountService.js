@@ -11,6 +11,7 @@ function defaultProfile(userId) {
   const isDemo = userId === DEMO_STUDENT_ID;
   return {
     course: isDemo ? "BS Information Technology" : "",
+    yearLevel: "",
     passwordChangedAt: isDemo ? dayAt(-32, 9, 0) : null,
     notifications: { reminders: true, confirmations: true },
   };
@@ -26,7 +27,7 @@ export async function getAccount(userId) {
   return { studentId: state.studentId ?? "", ...profileOf(state, userId) };
 }
 
-export async function saveAccount(user, { name, studentId, course, notifications }) {
+export async function saveAccount(user, { name, studentId, course, yearLevel, notifications }) {
   await delay();
   // Student IDs are unique (users.student_id is a UNIQUE column).
   const taken = getRoster().some((row) => row.studentId === studentId && row.userId !== user.id);
@@ -41,7 +42,7 @@ export async function saveAccount(user, { name, studentId, course, notifications
   saveState(user.id, {
     ...state,
     studentId,
-    profile: { ...profileOf(state, user.id), course, notifications },
+    profile: { ...profileOf(state, user.id), course, yearLevel, notifications },
   });
   syncProfile(user.id, { name, studentId, course });
 }

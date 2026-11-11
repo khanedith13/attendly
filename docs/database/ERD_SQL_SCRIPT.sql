@@ -27,6 +27,7 @@ CREATE TABLE users (
 
     student_id VARCHAR(20) NULL UNIQUE,            -- format 2026-10452
     course VARCHAR(100) NULL,
+    year_level VARCHAR(30) NULL,
     notification_preferences JSON NULL,            -- switches on My Account / Organizer Profile
     password_changed_at TIMESTAMP NULL,            -- "Last updated 32 days ago"
     remember_token VARCHAR(100) NULL,

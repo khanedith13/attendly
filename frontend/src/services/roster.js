@@ -12,6 +12,7 @@ const DEMO_STUDENT = {
   studentId: "2026-10452",
   email: "student@school.edu.ph",
   course: "BS Information Technology",
+  yearLevel: "",
 };
 
 // Made-up but repeatable students, so the demo looks the same every time.
@@ -24,6 +25,7 @@ function fakeStudent(eventId, i) {
     email: `${first}.${last}`.toLowerCase().replaceAll(" ", "") + "@school.edu.ph",
     studentId: `2026-${10000 + ((i * 97 + eventId * 131) % 89000)}`,
     course: COURSES[(i + eventId) % COURSES.length],
+    yearLevel: "",
   };
 }
 
@@ -79,7 +81,7 @@ export function getRoster() {
 
 const isMine = (row, eventId, userId) => row.eventId === eventId && row.userId === userId;
 
-export function upsertRegistration({ eventId, user, studentId, course }) {
+export function upsertRegistration({ eventId, user, studentId, course, yearLevel }) {
   const rows = readRoster();
   const now = new Date().toISOString();
 
@@ -103,6 +105,7 @@ export function upsertRegistration({ eventId, user, studentId, course }) {
       studentId: studentId ?? "",
       email: user.email,
       course: course ?? "",
+      yearLevel: yearLevel ?? "",
       registeredAt: now,
       status: "registered",
       timeIn: null,
@@ -126,8 +129,10 @@ export const markCheckIn = (eventId, userId, iso) => patchMine(eventId, userId, 
 export const markCheckOut = (eventId, userId, iso) => patchMine(eventId, userId, { timeOut: iso });
 
 // Keeps the organizer's view in step when a student edits their account.
-export function syncProfile(userId, { name, studentId, course }) {
+export function syncProfile(userId, { name, studentId, course, yearLevel }) {
   saveRoster(
-    readRoster().map((row) => (row.userId === userId ? { ...row, name, studentId, course } : row)),
+    readRoster().map((row) =>
+      row.userId === userId ? { ...row, name, studentId, course, yearLevel } : row,
+    ),
   );
 }

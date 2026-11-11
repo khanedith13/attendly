@@ -1,0 +1,42 @@
+const SESSION_KEY = "attendly_session";
+
+// "Remember me" keeps the session after the browser closes (localStorage).
+// Without it the session lives only in this tab (sessionStorage).
+function readSession() {
+  for (const store of [localStorage, sessionStorage]) {
+    try {
+      const raw = store.getItem(SESSION_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {
+      // ignore broken data
+    }
+  }
+  return { token: null, user: null };
+}
+
+export const storage = {
+  getJSON: (key, fallback) => {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return fallback;
+
+    try {
+      return JSON.parse(raw);
+    } catch (error) {
+      if (error instanceof SyntaxError) return fallback;
+      throw error;
+    }
+  },
+  setJSON: (key, value) => {
+    localStorage.setItem(key, JSON.stringify(value));
+  },
+  getSession: readSession,
+  setSession: (session, { remember = true } = {}) => {
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+    (remember ? localStorage : sessionStorage).setItem(SESSION_KEY, JSON.stringify(session));
+  },
+  clearSession: () => {
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+  },
+};

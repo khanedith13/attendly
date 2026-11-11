@@ -1,0 +1,48 @@
+import Avatar from "./Avatar";
+import NotificationBell from "./NotificationBell";
+import Pill from "./Pill";
+import ReviewPill from "./ReviewPill";
+import "./Topbar.css";
+
+export default function Topbar({
+  roleLabel,
+  pageLabel,
+  variant,
+  initials,
+  badge,
+  slotRef,
+  onMenu,
+}) {
+  function renderExtra() {
+    if (badge?.hidden) return null;
+    if (badge?.text) return <Pill tone={badge.tone}>{badge.text}</Pill>;
+    if (badge?.icon) {
+      return (
+        <button type="button" className="icon-btn" aria-label="Search" onClick={badge.onClick}>
+          {badge.icon}
+        </button>
+      );
+    }
+    if (variant === "reviews") return <ReviewPill />;
+    return <NotificationBell />;
+  }
+
+  return (
+    <header className="topbar">
+      <div className="topbar__left">
+        <button type="button" className="topbar__menu" aria-label="Open menu" onClick={onMenu}>
+          ☰
+        </button>
+        <div className="topbar__crumb">
+          <b>{roleLabel}</b> / {pageLabel}
+        </div>
+      </div>
+
+      <div className="topbar__actions">
+        <div ref={slotRef} className="topbar__slot" />
+        {renderExtra()}
+        <Avatar initials={initials} />
+      </div>
+    </header>
+  );
+}

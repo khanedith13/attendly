@@ -1,0 +1,36 @@
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app__main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.app__content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 30px;
+}
+
+.auth__form-error {
+  padding: 10px 12px;
+  border-radius: var(--radius-input);
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  font-size: 11px;
+}
+
+.auth__notice {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: var(--radius-input);
+  background: var(--success-bg);
+  color: var(--success-text);
+  font-size: 11px;
+  font-weight: 700;
+}

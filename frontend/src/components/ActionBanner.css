@@ -1,0 +1,23 @@
+.action-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 21px;
+  border: 1px solid var(--warning-border);
+  border-radius: var(--radius-card);
+  background: linear-gradient(90deg, #fff7ed, #fffbeb);
+  box-shadow: var(--shadow-card);
+}
+
+.action-banner__title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.action-banner__text {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--warning-strong);
+}

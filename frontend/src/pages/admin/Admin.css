@@ -1,0 +1,82 @@
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.inspect {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 10px 14px;
+  margin: 0 0 18px;
+  font-size: 12px;
+}
+
+.inspect dt {
+  color: var(--text-muted);
+}
+
+.inspect dd {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 2.8fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.card.settings-nav {
+  padding: 14px;
+}
+
+.settings-tab {
+  display: block;
+  width: 100%;
+  margin-bottom: 3px;
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  font-size: 13px;
+  text-align: left;
+  color: #475569;
+  cursor: pointer;
+}
+
+.settings-tab:hover {
+  background: var(--bg);
+}
+
+.settings-tab--active {
+  background: var(--primary-soft);
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.settings-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.settings-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 6px;
+}
+
+.later-tag {
+  margin-left: 8px;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--neutral-bg);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted);
+}

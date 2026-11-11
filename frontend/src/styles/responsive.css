@@ -1,0 +1,153 @@
+/* Tablet and phone: the sidebar becomes a drawer, wide layouts stack. */
+@media (max-width: 900px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 60;
+    height: 100dvh;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+  }
+
+  .sidebar--open {
+    transform: translateX(0);
+    box-shadow: 0 0 40px rgba(15, 23, 42, 0.4);
+  }
+
+  .scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(17, 24, 39, 0.5);
+  }
+
+  .topbar {
+    padding: 0 16px;
+  }
+
+  .topbar__menu {
+    display: flex;
+  }
+
+  .app__content {
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .page-header {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .page-header__actions {
+    flex-wrap: wrap;
+  }
+
+  /* Column layouts */
+  .grid-4,
+  .roster-tiles--4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid-3,
+  .grid-2,
+  .roster-tiles--3,
+  .attendance-grid,
+  .event-form,
+  .event-form__row,
+  .event-form__row--3,
+  .event-form__tiles,
+  .account-grid,
+  .account-fields,
+  .org-grid,
+  .org-fields,
+  .settings-grid,
+  .settings-fields,
+  .quick {
+    grid-template-columns: 1fr;
+  }
+
+  /* Toolbars wrap, controls use the full width */
+  .toolbar,
+  .roster-toolbar,
+  .reg-filters {
+    flex-wrap: wrap;
+  }
+
+  .roster-toolbar__right {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .toolbar__sort {
+    margin-left: 0;
+  }
+
+  .search {
+    width: 100%;
+  }
+
+  .inline-select {
+    width: 100% !important;
+  }
+
+  /* Grid children may shrink, so a wide table scrolls inside its card instead of stretching the page */
+  .grid-2 > *,
+  .grid-3 > *,
+  .grid-4 > *,
+  .attendance-grid > *,
+  .event-form > *,
+  .account-grid > *,
+  .org-grid > *,
+  .settings-grid > * {
+    min-width: 0;
+  }
+
+  /* Wide tables scroll sideways inside their card */
+  .table {
+    min-width: 640px;
+  }
+
+  .perf {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .pager,
+  .action-banner,
+  .account-signout {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 560px) {
+  .grid-4,
+  .roster-tiles--4,
+  .qr-grid,
+  .auth__row {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header__title {
+    font-size: 22px;
+  }
+
+  .auth__panel {
+    padding: 24px 16px;
+  }
+
+  .modal {
+    padding: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar {
+    transition: none;
+  }
+}

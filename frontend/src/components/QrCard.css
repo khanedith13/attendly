@@ -1,0 +1,25 @@
+.qr-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+.qr-card__label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.qr-card__code {
+  padding: 8px;
+  border-radius: 10px;
+  background: #fff;
+  line-height: 0;
+}

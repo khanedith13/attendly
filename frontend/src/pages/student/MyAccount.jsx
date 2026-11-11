@@ -50,6 +50,7 @@ export default function MyAccount() {
     lastName: name.lastName,
     studentId: data.studentId,
     course: data.course,
+    yearLevel: data.yearLevel,
     ...edits,
   };
   const notifications = { ...data.notifications, ...notifEdits };
@@ -83,6 +84,7 @@ export default function MyAccount() {
         name: joinName(values.firstName, values.lastName),
         studentId: values.studentId.trim(),
         course: values.course.trim(),
+        yearLevel: values.yearLevel.trim(),
         notifications,
       });
       await refreshUser();
@@ -193,6 +195,14 @@ export default function MyAccount() {
                 name="course"
                 label="Course / Program"
                 value={values.course}
+                onChange={handleChange}
+              />
+              <FormField
+                id="yearLevel"
+                name="yearLevel"
+                label="Year level"
+                placeholder="e.g. 3rd Year"
+                value={values.yearLevel}
                 onChange={handleChange}
               />
               <div className="account-fields__wide">

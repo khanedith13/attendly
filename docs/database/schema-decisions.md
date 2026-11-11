@@ -25,6 +25,7 @@ erDiagram
         enum status "active, pending, suspended"
         varchar student_id UK "nullable"
         varchar course "nullable"
+        varchar year_level "nullable"
         json notification_preferences "nullable"
         timestamp password_changed_at "nullable"
     }
@@ -91,6 +92,7 @@ erDiagram
 | all | `id` and foreign keys are `BIGINT UNSIGNED` | Laravel's default key type |
 | users | + `status` | Organizer approval queue and suspending accounts |
 | users | + `student_id` (unique), `course` | My Account and attendance screens |
+| users | + `year_level` | Student profile and attendance details |
 | users | + `notification_preferences` (JSON) | Notification switches for every role |
 | users | + `password_changed_at` | "Last updated 32 days ago" |
 | users | + `email_verified_at`, `remember_token` | Needed by Laravel's login system |

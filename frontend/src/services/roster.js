@@ -124,9 +124,11 @@ function patchMine(eventId, userId, patch) {
 export const cancelRosterRegistration = (eventId, userId) =>
   patchMine(eventId, userId, { status: "cancelled" });
 
-export const markCheckIn = (eventId, userId, iso) => patchMine(eventId, userId, { timeIn: iso });
+export const markCheckIn = (eventId, userId, iso, selfie) =>
+  patchMine(eventId, userId, { timeIn: iso, selfieIn: selfie });
 
-export const markCheckOut = (eventId, userId, iso) => patchMine(eventId, userId, { timeOut: iso });
+export const markCheckOut = (eventId, userId, iso, selfie) =>
+  patchMine(eventId, userId, { timeOut: iso, selfieOut: selfie });
 
 // Keeps the organizer's view in step when a student edits their account.
 export function syncProfile(userId, { name, studentId, course, yearLevel }) {

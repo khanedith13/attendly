@@ -4,8 +4,7 @@ export const roleLabels = {
   admin: "Administrator",
 };
 
-export const homePath = (role) =>
-  role === "student" ? "/student/events" : `/${role}/dashboard`;
+export const homePath = (role) => (role === "student" ? "/student/events" : `/${role}/dashboard`);
 
 export function getInitials(name = "") {
   const parts = name.trim().split(/\s+/).filter(Boolean);

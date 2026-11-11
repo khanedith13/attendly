@@ -297,12 +297,18 @@ export default function CreateEvent() {
           <div className="qr-grid">
             <QrCard
               label="Attendance in"
-              value={`attendly:in:${codes.in}`}
+              value={new URL(
+                `/check-in/${encodeURIComponent(codes.in)}`,
+                window.location.origin,
+              ).toString()}
               filename="attendance-in-qr.png"
             />
             <QrCard
               label="Attendance out"
-              value={`attendly:out:${codes.out}`}
+              value={new URL(
+                `/check-out/${encodeURIComponent(codes.out)}`,
+                window.location.origin,
+              ).toString()}
               filename="attendance-out-qr.png"
             />
           </div>

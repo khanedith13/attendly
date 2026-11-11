@@ -283,6 +283,13 @@ export async function getAttendanceInData(user) {
   return {
     events,
     studentId: state.studentId,
+    student: {
+      name: user.name,
+      email: user.email,
+      studentId: state.studentId ?? "",
+      course: courseOf(state, user.id),
+      yearLevel: yearLevelOf(state, user.id),
+    },
     activeSession: state.activeSession,
     lastCheckIn: lastCheckInOf(state),
   };

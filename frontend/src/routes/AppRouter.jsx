@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import AppLayout from "../layouts/AppLayout";
+import BrowserAttendance from "../pages/BrowserAttendance";
 import NotFound from "../pages/NotFound";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
@@ -39,6 +40,10 @@ export default function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Route>
+
+      {/* Public QR destinations; these must stay outside authenticated route groups. */}
+      <Route path="/check-in/:token" element={<BrowserAttendance direction="in" />} />
+      <Route path="/check-out/:token" element={<BrowserAttendance direction="out" />} />
 
       {/* Student */}
       <Route element={<ProtectedRoute allowedRole="student" />}>

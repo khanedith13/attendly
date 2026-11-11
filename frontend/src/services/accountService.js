@@ -44,7 +44,7 @@ export async function saveAccount(user, { name, studentId, course, yearLevel, no
     studentId,
     profile: { ...profileOf(state, user.id), course, yearLevel, notifications },
   });
-  syncProfile(user.id, { name, studentId, course });
+  syncProfile(user.id, { name, studentId, course, yearLevel });
 }
 
 export async function updatePassword(user, { currentPassword, newPassword }) {

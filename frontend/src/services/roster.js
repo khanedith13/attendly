@@ -1,4 +1,5 @@
 import { COURSES, FIRST, LAST } from "./names";
+import { ApiError } from "../api/ApiError";
 import { storage } from "../utils/storage";
 import { getCatalog } from "./catalog";
 
@@ -79,6 +80,70 @@ export function getRoster() {
   return readRoster();
 }
 
+export function recordPublicAttendance({
+  token,
+  direction,
+  studentId,
+  name,
+  course,
+  yearLevel,
+  selfie,
+}) {
+  if (!["in", "out"].includes(direction)) {
+    throw new ApiError("Invalid attendance direction.", 422);
+  }
+  if (!studentId.trim() || !name.trim() || !course.trim() || !yearLevel.trim() || !selfie) {
+    throw new ApiError("Complete all fields and take a selfie.", 422);
+  }
+
+  const event = getCatalog().find((item) => item[direction === "in" ? "qrIn" : "qrOut"] === token);
+  if (!event || event.status !== "published" || (event.review ?? "approved") !== "approved") {
+    throw new ApiError("This attendance QR is invalid or inactive.", 404);
+  }
+
+  const now = new Date();
+  if (now < new Date(event.startsAt) || now > new Date(event.endsAt)) {
+    throw new ApiError("Attendance is only available during the event time.", 409);
+  }
+
+  const rows = readRoster();
+  const index = rows.findIndex(
+    (row) =>
+      row.eventId === event.id && row.studentId === studentId.trim() && row.status === "registered",
+  );
+  if (index < 0) {
+    throw new ApiError("This Student ID is not registered for this event.", 422, {
+      studentId: ["This Student ID is not registered for this event."],
+    });
+  }
+
+  const row = rows[index];
+  if (direction === "in" && row.timeIn) {
+    throw new ApiError("Attendance in has already been recorded.", 409);
+  }
+  if (direction === "out" && !row.timeIn) {
+    throw new ApiError("Check in before recording attendance out.", 409);
+  }
+  if (direction === "out" && row.timeOut) {
+    throw new ApiError("Attendance out has already been recorded.", 409);
+  }
+
+  const time = now.toISOString();
+  const updated = {
+    ...row,
+    name: name.trim(),
+    course: course.trim(),
+    yearLevel: yearLevel.trim(),
+    ...(direction === "in"
+      ? { timeIn: time, selfieIn: selfie }
+      : { timeOut: time, selfieOut: selfie }),
+  };
+  rows[index] = updated;
+  saveRoster(rows);
+
+  return { event, direction, time, student: updated };
+}
+
 const isMine = (row, eventId, userId) => row.eventId === eventId && row.userId === userId;
 
 export function upsertRegistration({ eventId, user, studentId, course, yearLevel }) {
@@ -124,9 +189,11 @@ function patchMine(eventId, userId, patch) {
 export const cancelRosterRegistration = (eventId, userId) =>
   patchMine(eventId, userId, { status: "cancelled" });
 
-export const markCheckIn = (eventId, userId, iso) => patchMine(eventId, userId, { timeIn: iso });
+export const markCheckIn = (eventId, userId, iso, selfie) =>
+  patchMine(eventId, userId, { timeIn: iso, selfieIn: selfie });
 
-export const markCheckOut = (eventId, userId, iso) => patchMine(eventId, userId, { timeOut: iso });
+export const markCheckOut = (eventId, userId, iso, selfie) =>
+  patchMine(eventId, userId, { timeOut: iso, selfieOut: selfie });
 
 // Keeps the organizer's view in step when a student edits their account.
 export function syncProfile(userId, { name, studentId, course, yearLevel }) {

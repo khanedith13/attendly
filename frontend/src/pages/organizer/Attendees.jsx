@@ -8,6 +8,7 @@ import DataTable from "../../components/DataTable";
 import InlineSelect from "../../components/InlineSelect";
 import LoadingBlock from "../../components/LoadingBlock";
 import MiniStat from "../../components/MiniStat";
+import Modal from "../../components/Modal";
 import PageHeader from "../../components/PageHeader";
 import Pagination from "../../components/Pagination";
 import PersonCell from "../../components/PersonCell";
@@ -32,30 +33,6 @@ const filters = [
   { value: "noshow", label: "No show" },
 ];
 
-const columns = [
-  { key: "name", header: "Student", render: (row) => <PersonCell name={row.name} /> },
-  { key: "studentId", header: "Student ID" },
-  { key: "email", header: "Email" },
-  {
-    key: "registered",
-    header: "Registered",
-    render: (row) => formatShortDateTime(row.registeredAt),
-  },
-  { key: "in", header: "Check in", render: (row) => (row.timeIn ? formatTime(row.timeIn) : "—") },
-  {
-    key: "out",
-    header: "Check out",
-    render: (row) => (row.timeOut ? formatTime(row.timeOut) : "—"),
-  },
-  {
-    key: "status",
-    header: "Status",
-    render: (row) => (
-      <Pill tone={attendeeMeta[row.state].tone}>{attendeeMeta[row.state].label}</Pill>
-    ),
-  },
-];
-
 export default function Attendees() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -66,6 +43,7 @@ export default function Attendees() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [page, setPage] = useState(1);
+  const [selectedSelfie, setSelectedSelfie] = useState(null);
   const now = useNow();
 
   useTopbarNone();
@@ -107,6 +85,76 @@ export default function Attendees() {
   const pages = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
   const current = Math.min(page, pages);
   const visible = matches.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+
+  const columns = [
+    { key: "name", header: "Student", render: (row) => <PersonCell name={row.name} /> },
+    { key: "studentId", header: "Student ID" },
+    { key: "email", header: "Email" },
+    {
+      key: "registered",
+      header: "Registered",
+      render: (row) => formatShortDateTime(row.registeredAt),
+    },
+    {
+      key: "in",
+      header: "Check in",
+      render: (row) => (row.timeIn ? formatTime(row.timeIn) : "—"),
+    },
+    {
+      key: "out",
+      header: "Check out",
+      render: (row) => (row.timeOut ? formatTime(row.timeOut) : "—"),
+    },
+    {
+      key: "selfies",
+      header: "Selfies",
+      render: (row) => (
+        <div style={{ display: "flex", gap: 8 }}>
+          {[
+            ["in", row.selfieIn],
+            ["out", row.selfieOut],
+          ].map(
+            ([direction, image]) =>
+              image && (
+                <button
+                  key={direction}
+                  type="button"
+                  aria-label={`View attendance ${direction} selfie for ${row.name}`}
+                  onClick={() => setSelectedSelfie({ direction, image, name: row.name })}
+                  style={{
+                    padding: 0,
+                    border: 0,
+                    borderRadius: 6,
+                    background: "transparent",
+                    cursor: "pointer",
+                  }}
+                >
+                  <img
+                    src={image}
+                    alt={`${direction === "in" ? "Check-in" : "Check-out"} selfie`}
+                    style={{
+                      display: "block",
+                      width: 42,
+                      height: 42,
+                      borderRadius: 6,
+                      objectFit: "cover",
+                    }}
+                  />
+                </button>
+              ),
+          )}
+          {!row.selfieIn && !row.selfieOut && "—"}
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (row) => (
+        <Pill tone={attendeeMeta[row.state].tone}>{attendeeMeta[row.state].label}</Pill>
+      ),
+    },
+  ];
 
   function exportCsv() {
     const slug = event.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -191,6 +239,20 @@ export default function Attendees() {
           noun="attendees"
         />
       </Card>
+
+      {selectedSelfie && (
+        <Modal
+          title={`${selectedSelfie.direction === "in" ? "Check-in" : "Check-out"} selfie`}
+          onClose={() => setSelectedSelfie(null)}
+          maxWidth={640}
+        >
+          <img
+            src={selectedSelfie.image}
+            alt={`${selectedSelfie.direction === "in" ? "Check-in" : "Check-out"} selfie of ${selectedSelfie.name}`}
+            style={{ display: "block", width: "100%", borderRadius: 12 }}
+          />
+        </Modal>
+      )}
     </>
   );
 }

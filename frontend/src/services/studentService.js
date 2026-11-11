@@ -283,6 +283,13 @@ export async function getAttendanceInData(user) {
   return {
     events,
     studentId: state.studentId,
+    student: {
+      name: user.name,
+      email: user.email,
+      studentId: state.studentId ?? "",
+      course: courseOf(state, user.id),
+      yearLevel: yearLevelOf(state, user.id),
+    },
     activeSession: state.activeSession,
     lastCheckIn: lastCheckInOf(state),
   };
@@ -291,12 +298,27 @@ export async function getAttendanceInData(user) {
 export async function getAttendanceOutData(user) {
   await delay();
   const state = loadState(user.id);
-  return { activeSession: state.activeSession, studentId: state.studentId };
+  return {
+    activeSession: state.activeSession,
+    studentId: state.studentId,
+    student: {
+      name: user.name,
+      studentId: state.studentId ?? "",
+      course: courseOf(state, user.id),
+      yearLevel: yearLevelOf(state, user.id),
+    },
+  };
 }
 
-export async function checkIn(user, { studentId, email, eventId }) {
+export async function checkIn(user, { studentId, email, eventId, selfie }) {
   await delay();
   const state = loadState(user.id);
+
+  if (!selfie) {
+    throw new ApiError("Validation failed.", 422, {
+      selfie: ["A selfie is required for attendance."],
+    });
+  }
 
   if (email !== user.email) {
     throw new ApiError("Validation failed.", 422, {
@@ -329,21 +351,28 @@ export async function checkIn(user, { studentId, email, eventId }) {
     eventTitle: event.title,
     studentId,
     checkedInAt,
+    selfieIn: selfie,
     attendance: late ? "late" : "present",
     registeredAt: registration.registeredAt,
   };
   saveState(user.id, { ...state, studentId, activeSession: session });
-  markCheckIn(event.id, user.id, checkedInAt);
+  markCheckIn(event.id, user.id, checkedInAt, selfie);
   adjustCounts(event.id, { checkedIn: 1 });
   return session;
 }
 
-export async function checkOut(user, { studentId }) {
+export async function checkOut(user, { studentId, selfie }) {
   await delay();
   const state = loadState(user.id);
   const session = state.activeSession;
 
   if (!session) throw new ApiError("You are not checked in to any event.", 409);
+
+  if (!selfie) {
+    throw new ApiError("Validation failed.", 422, {
+      selfie: ["A selfie is required for attendance."],
+    });
+  }
 
   if (session.studentId !== studentId) {
     throw new ApiError("Validation failed.", 422, {
@@ -357,11 +386,13 @@ export async function checkOut(user, { studentId }) {
     event: session.eventTitle,
     timeIn: session.checkedInAt,
     timeOut: new Date().toISOString(),
+    selfieIn: session.selfieIn,
+    selfieOut: selfie,
     attendance: session.attendance,
     registeredAt: session.registeredAt,
   };
 
-  markCheckOut(session.eventId, user.id, entry.timeOut);
+  markCheckOut(session.eventId, user.id, entry.timeOut, selfie);
   saveState(user.id, {
     ...state,
     history: [entry, ...state.history],

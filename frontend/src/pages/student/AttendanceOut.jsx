@@ -22,7 +22,6 @@ export default function AttendanceOut() {
   const { data, loading, reload } = useAsyncData(load);
 
   const [scanConfirmed, setScanConfirmed] = useState(false);
-  const [selfie, setSelfie] = useState("");
   const [scannerKey, setScannerKey] = useState(0);
   const [scanMessage, setScanMessage] = useState(null);
   const [error, setError] = useState("");
@@ -65,19 +64,12 @@ export default function AttendanceOut() {
     }
 
     setScanConfirmed(true);
-    setSelfie("");
     setError("");
     setScanMessage(null);
   }
 
-  async function handleSubmit(event) {
-    event.preventDefault();
-    if (!active || !scanConfirmed) return;
-    if (!selfie) {
-      setError("Take a selfie to submit attendance.");
-      return;
-    }
-
+  async function handleSelfieCapture(selfie) {
+    if (!active || !scanConfirmed || !selfie || submitting) return;
     setSubmitting(true);
     setError("");
     try {
@@ -95,7 +87,6 @@ export default function AttendanceOut() {
   function closeReceipt() {
     setReceipt(null);
     setScanConfirmed(false);
-    setSelfie("");
   }
 
   return (
@@ -103,7 +94,7 @@ export default function AttendanceOut() {
       <PageHeader
         eyebrow="Departure"
         title="Attendance Out"
-        subtitle="Scan the checkout QR, take a required selfie, and submit your attendance."
+        subtitle="Scan the checkout QR, then capture your selfie to submit attendance."
       />
 
       {!scanConfirmed ? (
@@ -119,13 +110,9 @@ export default function AttendanceOut() {
       ) : (
         <Card title="Take event selfie">
           <p className="attendance__note">{active.eventTitle}</p>
-          <form className="attendance__form" onSubmit={handleSubmit} noValidate>
-            <SelfieCapture onCapture={setSelfie} />
-            {error && <Notice tone="danger">{error}</Notice>}
-            <Button type="submit" size="lg" className="btn--block" disabled={submitting || !selfie}>
-              {submitting ? "Submitting..." : "Submit attendance out"}
-            </Button>
-          </form>
+          <SelfieCapture onCapture={handleSelfieCapture} />
+          {submitting && <Notice tone="info">Submitting attendance...</Notice>}
+          {error && <Notice tone="danger">{error}</Notice>}
         </Card>
       )}
 

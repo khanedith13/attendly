@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Button from "./Button";
 import "./ScannerPreview.css";
 
@@ -12,35 +12,19 @@ export default function ScannerPreview({ hint, caption, onScan }) {
   const [error, setError] = useState("");
   const [result, setResult] = useState("");
 
-  useEffect(
-    () => () => {
-      activeRef.current = false;
-      controlsRef.current?.stop();
-    },
-    [],
-  );
-
   useEffect(() => {
     onScanRef.current = onScan;
   }, [onScan]);
 
-  function stopScanning() {
-    activeRef.current = false;
-    controlsRef.current?.stop();
-    controlsRef.current = null;
-    setScanning(false);
-    setStarting(false);
-  }
-
-  async function startScanning() {
+  const startScanning = useCallback(async () => {
     activeRef.current = true;
-    setStarting(true);
-    setError("");
-    setResult("");
 
     try {
       const { BrowserQRCodeReader } = await import("@zxing/browser");
       if (!activeRef.current) return;
+      setStarting(true);
+      setError("");
+      setResult("");
       const reader = new BrowserQRCodeReader();
       const controls = await reader.decodeFromVideoDevice(
         undefined,
@@ -76,7 +60,20 @@ export default function ScannerPreview({ hint, caption, onScan }) {
         );
       }
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    Promise.resolve().then(() => {
+      if (mounted) startScanning();
+    });
+
+    return () => {
+      mounted = false;
+      activeRef.current = false;
+      controlsRef.current?.stop();
+    };
+  }, [startScanning]);
 
   return (
     <div>
@@ -89,7 +86,7 @@ export default function ScannerPreview({ hint, caption, onScan }) {
             playsInline
             style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "18px" }}
           />
-          {scanning && <span className="scanner__line" />}
+          {(scanning || starting) && <span className="scanner__line" />}
           <span className="scanner__corner scanner__corner--tl" />
           <span className="scanner__corner scanner__corner--tr" />
           <span className="scanner__corner scanner__corner--bl" />
@@ -97,18 +94,14 @@ export default function ScannerPreview({ hint, caption, onScan }) {
         </div>
         <p className="scanner__caption">{caption}</p>
       </div>
-      <div className="attendance__center">
-        {scanning || starting ? (
-          <Button variant="outline" onClick={stopScanning}>
-            Stop camera
-          </Button>
-        ) : (
+      {error && (
+        <div className="attendance__center">
+          <p role="alert">{error}</p>
           <Button variant="outline" onClick={startScanning} disabled={starting}>
-            {starting ? "Starting camera..." : "Start camera"}
+            Retry camera
           </Button>
-        )}
-      </div>
-      {error && <p role="alert">{error}</p>}
+        </div>
+      )}
       {result && <p aria-live="polite">QR detected: {result}</p>}
     </div>
   );

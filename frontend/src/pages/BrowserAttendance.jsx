@@ -21,6 +21,7 @@ export default function BrowserAttendance({ direction }) {
     course: "",
     yearLevel: "",
   });
+  const [selfie, setSelfie] = useState("");
   const [errors, setErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -38,9 +39,13 @@ export default function BrowserAttendance({ direction }) {
     setErrorMessage("");
   }
 
-  async function handleSelfieCapture(selfie) {
-    if (!selfie || submitting || !event) return;
-
+  async function handleSubmit(submitEvent) {
+    submitEvent.preventDefault();
+    if (submitting || !event) return;
+    if (!selfie) {
+      setErrorMessage("Take a selfie before submitting attendance.");
+      return;
+    }
     const nextErrors = {};
     if (!values.studentId.trim()) nextErrors.studentId = "Student ID is required.";
     else if (!isStudentId(values.studentId)) {
@@ -96,7 +101,7 @@ export default function BrowserAttendance({ direction }) {
       />
 
       <Card title={event.title}>
-        <form className="attendance__form" onSubmit={(submitEvent) => submitEvent.preventDefault()}>
+        <form className="attendance__form" onSubmit={handleSubmit}>
           <FormField
             id="studentId"
             name="studentId"
@@ -138,11 +143,17 @@ export default function BrowserAttendance({ direction }) {
             Your selfie is shared with the event organizer for attendance verification.
           </p>
           <SelfieCapture
-            key={`${token}-${receipt ? "submitted" : "form"}`}
-            onCapture={handleSelfieCapture}
+            key={token}
+            onCapture={(image) => {
+              setSelfie(image);
+              setErrorMessage("");
+            }}
           />
           {submitting && <Notice tone="info">Submitting attendance...</Notice>}
           {errorMessage && <Notice tone="danger">{errorMessage}</Notice>}
+          <Button type="submit" size="lg" className="btn--block" disabled={submitting || !selfie}>
+            {submitting ? "Submitting..." : "Submit attendance"}
+          </Button>
         </form>
       </Card>
 

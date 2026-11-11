@@ -14,6 +14,7 @@ const isOpen = (event) =>
   event.status === "published" && (event.review ?? "approved") === "approved";
 const courseOf = (state, userId) =>
   state.profile?.course ?? (userId === DEMO_STUDENT_ID ? "BS Information Technology" : "");
+const yearLevelOf = (state) => state.profile?.yearLevel ?? "";
 
 function startOfToday() {
   const date = new Date();
@@ -199,6 +200,7 @@ export async function registerForEvent(user, eventId) {
     user,
     studentId: state.studentId,
     course: courseOf(state, user.id),
+    yearLevel: yearLevelOf(state),
   });
   adjustCounts(eventId, { registered: 1 });
   return registration;

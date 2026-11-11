@@ -11,6 +11,7 @@ import { useAsyncData } from "../../hooks/useAsyncData";
 import { useAuth } from "../../hooks/useAuth";
 import { useNow } from "../../hooks/useNow";
 import { useTopbarBadge } from "../../hooks/useTopbarBadge";
+import { getCatalog } from "../../services/catalog";
 import { checkOut, getAttendanceOutData } from "../../services/studentService";
 import { firstErrors } from "../../utils/apiErrors";
 import { formatDuration, formatTime } from "../../utils/format";
@@ -28,6 +29,7 @@ export default function AttendanceOut() {
   const [typedId, setTypedId] = useState(null);
   const [fieldError, setFieldError] = useState("");
   const [formError, setFormError] = useState("");
+  const [scanMessage, setScanMessage] = useState(null);
   const [success, setSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -44,7 +46,43 @@ export default function AttendanceOut() {
     setTypedId(event.target.value);
     setFieldError("");
     setFormError("");
+    setScanMessage(null);
     setSuccess("");
+  }
+
+  function handleScan(value) {
+    let token;
+    try {
+      const path = new URL(value).pathname;
+      const match = path.match(/^\/check-out\/([^/]+)$/);
+      if (!match) throw new Error("This QR code is not an attendance-out code.");
+      token = decodeURIComponent(match[1]);
+    } catch (error) {
+      setScanMessage({
+        tone: "danger",
+        text:
+          error instanceof TypeError
+            ? "This QR code is not a valid attendance link."
+            : error.message,
+      });
+      return;
+    }
+
+    const event = getCatalog().find((item) => item.qrOut === token);
+    if (!active || !event || event.id !== active.eventId) {
+      setScanMessage({
+        tone: "danger",
+        text: "This checkout QR does not match your active event.",
+      });
+      return;
+    }
+
+    setScanMessage({
+      tone: "success",
+      text: `Checkout QR confirmed for ${active.eventTitle}.`,
+    });
+    setFormError("");
+    setFieldError("");
   }
 
   async function handleSubmit(event) {
@@ -82,7 +120,9 @@ export default function AttendanceOut() {
           <ScannerPreview
             hint="Point your camera at the checkout QR"
             caption="Camera preview • QR scanner"
+            onScan={handleScan}
           />
+          {scanMessage && <Notice tone={scanMessage.tone}>{scanMessage.text}</Notice>}
           <div className="attendance__center">
             <Button variant="outline" onClick={() => studentIdRef.current?.focus()}>
               Use manual entry instead

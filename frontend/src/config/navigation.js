@@ -7,7 +7,6 @@ export const roleConfig = {
       {
         title: "Main",
         items: [
-          { label: "Dashboard", path: "/student/dashboard", icon: "⌂" },
           { label: "Attendance In", path: "/student/attendance-in", icon: "⌁" },
           { label: "Attendance Out", path: "/student/attendance-out", icon: "↗" },
           { label: "Browse Events", path: "/student/events", icon: "▣" },

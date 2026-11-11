@@ -10,7 +10,7 @@ export default function NotFound() {
       <h1>404</h1>
       <p>This page doesn't exist.</p>
       <Link to={user ? homePath(user.role) : "/login"} className="not-found__link">
-        {user ? "Back to dashboard" : "Back to login"}
+        {user ? "Back to home" : "Back to login"}
       </Link>
     </main>
   );

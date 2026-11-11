@@ -16,15 +16,8 @@ const courseOf = (state, userId) =>
   state.profile?.course ?? (userId === DEMO_STUDENT_ID ? "BS Information Technology" : "");
 const yearLevelOf = (state) => state.profile?.yearLevel ?? "";
 
-function startOfToday() {
-  const date = new Date();
-  date.setHours(0, 0, 0, 0);
-  return date;
-}
-
 function emptyState() {
   return {
-    stats: { attended: 0, rate: 0, hours: 0 },
     registrations: [],
     history: [],
     studentId: null,
@@ -40,9 +33,7 @@ function demoState() {
     qrToken: newToken(),
     registeredAt,
   });
-
   return {
-    stats: { attended: 18, rate: 96, hours: 7 },
     registrations: [
       reg(1, 101, "2026-10-01T09:15:00"),
       reg(2, 102, "2026-10-02T14:40:00"),
@@ -115,31 +106,6 @@ function upcomingRegistrations(state) {
     (registration) =>
       registration.status === "registered" && !attendedIds.has(registration.eventId),
   );
-}
-
-/* ---------- Dashboard ---------- */
-
-export async function getDashboard(userId) {
-  await delay();
-  const state = loadState(userId);
-
-  const upcoming = upcomingRegistrations(state)
-    .map(joinEvent)
-    .filter(Boolean)
-    .filter(isOpen)
-    .filter((event) => new Date(event.startsAt) >= startOfToday())
-    .sort(byStart);
-
-  const next = upcoming[0] ?? null;
-  const recent = [...state.history]
-    .sort((a, b) => new Date(b.timeIn) - new Date(a.timeIn))
-    .slice(0, 5);
-
-  return {
-    stats: { ...state.stats, upcoming: upcoming.length },
-    nextEvent: next && { ...next, seat: next.registered },
-    recent,
-  };
 }
 
 /* ---------- Browse events and registrations ---------- */
@@ -396,7 +362,6 @@ export async function checkOut(user, { studentId, selfie }) {
   saveState(user.id, {
     ...state,
     history: [entry, ...state.history],
-    stats: { ...state.stats, attended: state.stats.attended + 1 },
     activeSession: null,
   });
   return entry;

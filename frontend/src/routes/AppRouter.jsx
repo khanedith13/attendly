@@ -8,7 +8,6 @@ import Register from "../pages/auth/Register";
 import GuestRoute from "./GuestRoute";
 import ProtectedRoute from "./ProtectedRoute";
 
-import StudentDashboard from "../pages/student/StudentDashboard";
 import AttendanceIn from "../pages/student/AttendanceIn";
 import AttendanceOut from "../pages/student/AttendanceOut";
 import BrowseEvents from "../pages/student/BrowseEvents";
@@ -48,8 +47,8 @@ export default function AppRouter() {
       {/* Student */}
       <Route element={<ProtectedRoute allowedRole="student" />}>
         <Route path="/student" element={<AppLayout role="student" />}>
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<StudentDashboard />} />
+          <Route index element={<Navigate to="events" replace />} />
+          <Route path="dashboard" element={<Navigate to="/student/events" replace />} />
           <Route path="attendance-in" element={<AttendanceIn />} />
           <Route path="attendance-out" element={<AttendanceOut />} />
           <Route path="events" element={<BrowseEvents />} />

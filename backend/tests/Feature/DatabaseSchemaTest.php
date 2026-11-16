@@ -37,13 +37,17 @@ class DatabaseSchemaTest extends TestCase
     public function test_demo_accounts_keep_ids_one_two_and_three(): void
     {
         $this->seed();
-
-        $roles = User::whereIn('id', [1, 2, 3])
+    
+        $demoAccounts = User::whereIn('id', [1, 2, 3])
             ->orderBy('id')
-            ->pluck('role')
-            ->all();
-
-        $this->assertSame(['admin', 'student', 'organizer'], $roles);
+            ->get(['id', 'name', 'email', 'role']);
+    
+        $this->assertSame([1, 2, 3], $demoAccounts->pluck('id')->all());
+        $this->assertSame(
+            ['admin@school.edu.ph', 'student@school.edu.ph', 'organizer@school.edu.ph'],
+            $demoAccounts->pluck('email')->all(),
+        );
+        $this->assertSame(['admin', 'student', 'organizer'], $demoAccounts->pluck('role')->all());
     }
 
     public function test_event_and_registration_qr_tokens_are_generated_as_uuids(): void

@@ -13,12 +13,14 @@ class UserSeeder extends Seeder
     {
         // Keep these first three IDs aligned with the frontend demo accounts.
         User::factory()->admin()->create([
+            'id' => 1,
             'name' => 'Admin',
             'email' => 'admin@school.edu.ph',
             'password' => 'password123',
         ]);
 
         User::factory()->create([
+            'id' => 2,
             'name' => 'Delfin Octobre',
             'email' => 'student@school.edu.ph',
             'password' => 'password123',
@@ -27,6 +29,7 @@ class UserSeeder extends Seeder
         ]);
 
         $eventsTeam = User::factory()->organizer()->create([
+            'id' => 3,
             'name' => 'Events Team',
             'email' => 'organizer@school.edu.ph',
             'password' => 'password123',

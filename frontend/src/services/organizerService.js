@@ -1,22 +1,13 @@
 import { notifyReviewsChanged } from "../utils/reviewBus";
-import { readSettings } from "./settings";
 import * as authService from "./authService";
 import { getRoster } from "./roster";
 import { storage } from "../utils/storage";
 import { validateOrganizerProfile } from "../utils/organizerValidation";
 import { ApiError } from "../api/ApiError";
 import { toApiErrors } from "../utils/apiErrors";
-import { toIso } from "../utils/dates";
-import { validateEvent } from "../utils/eventValidation";
 import { percent } from "../utils/format";
-import { findUserById } from "./userStore";
-import {
-  addCatalogEvent,
-  getCatalog,
-  getCatalogEvent,
-  updateCatalogEvent,
-  updateOwnedEvents,
-} from "./catalog";
+import api from "../api/axios";
+import { getCatalog, updateOwnedEvents } from "./catalog";
 
 const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms));
 const sum = (events, field) => events.reduce((total, event) => total + (event[field] ?? 0), 0);
@@ -25,31 +16,6 @@ const byStartDesc = (a, b) => new Date(b.startsAt) - new Date(a.startsAt);
 
 function ownEvents(user) {
   return getCatalog().filter((event) => event.ownerId === user.id);
-}
-
-// With "Event approval required" on, newly published events wait for an admin.
-const reviewForPublish = () => (readSettings().requireEventApproval ? "pending" : "approved");
-
-// An organizer can only touch their own events.
-function ownEvent(user, id) {
-  const event = getCatalogEvent(id);
-  if (!event || event.ownerId !== user.id) throw new ApiError("Event not found.", 404);
-  return event;
-}
-
-// Reads the account fresh, so an approval or suspension takes effect immediately.
-function assertApproved(user) {
-  const status = findUserById(user.id)?.status;
-
-  if (status === "pending") {
-    throw new ApiError(
-      "Your organizer account is awaiting approval. You can save drafts, but you cannot publish yet.",
-      403,
-    );
-  }
-  if (status !== "active") {
-    throw new ApiError("Your organizer account is not active.", 403);
-  }
 }
 
 export async function getOrganizerDashboard(user) {
@@ -85,51 +51,18 @@ export async function getOrganizerDashboard(user) {
   };
 }
 
-export async function listMyEvents(user) {
-  await delay();
-  return ownEvents(user).sort(byStartDesc);
+export async function listMyEvents() {
+  const { data } = await api.get("/organizer/events");
+  return data;
 }
 
 export async function publishEvent(user, id) {
-  await delay();
-  assertApproved(user);
-  const event = ownEvent(user, id);
-
-  if (event.status !== "draft") throw new ApiError("Only draft events can be published.", 409);
-  if (new Date(event.endsAt) < new Date()) {
-    throw new ApiError("This event's date has passed. Edit the date before publishing.", 409);
-  }
-  updateCatalogEvent(id, { status: "published", review: reviewForPublish() });
+  await api.post(`/organizer/events/${id}/publish`);
   notifyReviewsChanged();
 }
 
 export async function cancelEvent(user, id) {
-  await delay();
-  const event = ownEvent(user, id);
-
-  if (event.status !== "published")
-    throw new ApiError("Only published events can be cancelled.", 409);
-  if (new Date(event.endsAt) < new Date()) {
-    throw new ApiError("This event has already ended.", 409);
-  }
-  updateCatalogEvent(id, { status: "cancelled" });
-}
-
-// The fields that come from the form, in the shape the store keeps.
-function fieldsFromForm(data) {
-  return {
-    title: data.title.trim(),
-    description: data.description.trim(),
-    venue: data.venue.trim(),
-    category: data.category,
-    capacity: Number(data.capacity),
-    startsAt: toIso(data.date, data.startTime),
-    endsAt: toIso(data.date, data.endTime),
-    requireSchoolGmail: data.requireSchoolGmail,
-    sendConfirmation: data.sendConfirmation,
-    qrIn: data.qrIn,
-    qrOut: data.qrOut,
-  };
+  await api.post(`/organizer/events/${id}/cancel`);
 }
 
 function assertValid(errors) {
@@ -139,54 +72,32 @@ function assertValid(errors) {
 }
 
 export async function getEventForEdit(user, id) {
-  await delay();
-  return ownEvent(user, id);
+  const { data } = await api.get(`/organizer/events/${id}`);
+  return data;
 }
 
 export async function createEvent(user, data, { publish = false } = {}) {
-  await delay();
-  if (publish) assertApproved(user);
-  assertValid(validateEvent(data, { publish }));
+  const { data: event } = await api.post("/organizer/events", {
+    ...data,
+    publish,
+  });
 
-  const event = {
-    ...fieldsFromForm(data),
-    id: Date.now(),
-    status: publish ? "published" : "draft",
-    ownerId: user.id,
-    organizer: user.name,
-    registered: 0,
-    review: publish ? reviewForPublish() : "approved",
-    checkedIn: 0,
-    createdAt: new Date().toISOString(),
-  };
-  addCatalogEvent(event);
-  if (publish) notifyReviewsChanged();
+  if (publish) {
+    notifyReviewsChanged();
+  }
+
   return event;
 }
 
 export async function updateEvent(user, id, data, { publish = false } = {}) {
-  await delay();
-  if (publish && event.status === "draft") assertApproved(user);
-  const event = ownEvent(user, id);
-
-  if (event.status === "cancelled" || new Date(event.endsAt) < new Date()) {
-    throw new ApiError("This event can no longer be edited.", 409);
-  }
-
-  assertValid(
-    validateEvent(data, {
-      publish: publish || event.status === "published",
-      minCapacity: event.registered,
-    }),
-  );
-
-  const publishing = publish && event.status === "draft";
-  updateCatalogEvent(id, {
-    ...fieldsFromForm(data),
-    status: publishing ? "published" : event.status,
-    ...(publishing ? { review: reviewForPublish() } : {}),
+  await api.put(`/organizer/events/${id}`, {
+    ...data,
+    publish,
   });
-  if (publishing) notifyReviewsChanged();
+
+  if (publish) {
+    notifyReviewsChanged();
+  }
 }
 
 /* ---------- Attendees ---------- */

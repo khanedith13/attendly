@@ -153,8 +153,7 @@ class RegistrationService
      */
     private function eventStartsAt(Event $event): \Illuminate\Support\Carbon
     {
-        return \Illuminate\Support\Carbon::parse(
-            $event->event_date . ' ' . $event->start_time
-        );
+        return \Illuminate\Support\Carbon::parse($event->event_date)
+            ->setTimeFromTimeString((string) $event->start_time);
     }
 }

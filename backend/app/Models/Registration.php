@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Registration extends Model
 {
+    public $timestamps = false;
+
     protected $fillable = [
         'user_id',
         'event_id',

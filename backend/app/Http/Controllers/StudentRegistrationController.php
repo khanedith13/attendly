@@ -7,7 +7,6 @@ use App\Models\Registration;
 use App\Services\RegistrationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class StudentRegistrationController extends Controller
 {
@@ -110,19 +109,21 @@ class StudentRegistrationController extends Controller
         ]);
     }
 
-    private function eventStart(Registration $registration)
+    private function eventStart(Registration $registration): \Illuminate\Support\Carbon
     {
         return \Illuminate\Support\Carbon::parse(
-            $registration->event->event_date . ' '
-            . $registration->event->start_time
+            $registration->event->event_date
+        )->setTimeFromTimeString(
+            (string) $registration->event->start_time
         );
     }
-
-    private function eventEnd(Registration $registration)
+    
+    private function eventEnd(Registration $registration): \Illuminate\Support\Carbon
     {
         return \Illuminate\Support\Carbon::parse(
-            $registration->event->event_date . ' '
-            . $registration->event->end_time
+            $registration->event->event_date
+        )->setTimeFromTimeString(
+            (string) $registration->event->end_time
         );
     }
 }

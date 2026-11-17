@@ -199,24 +199,38 @@ class RegistrationApiTest extends TestCase
 
     private function createStudent(): User
     {
-        return User::query()->create([
+        $student = new User();
+    
+        $student->forceFill([
             'name' => 'Test Student',
             'email' => 'student-' . Str::uuid() . '@school.edu.ph',
             'password' => bcrypt('Password123!'),
             'role' => 'student',
             'status' => 'active',
         ]);
+    
+        $student->save();
+        $student->refresh();
+    
+        $this->assertSame('student', $student->role);
+        $this->assertSame('active', $student->status);
+    
+        return $student;
     }
 
     private function createEvent(int $capacity = 10): Event
     {
-        $organizerUser = User::query()->create([
+        $organizerUser = new User();
+
+        $organizerUser->forceFill([
             'name' => 'Test Organizer',
             'email' => 'organizer-' . Str::uuid() . '@school.edu.ph',
             'password' => bcrypt('Password123!'),
             'role' => 'organizer',
             'status' => 'active',
         ]);
+        
+        $organizerUser->save();
 
         $organizer = EventOrganizer::query()->create([
             'user_id' => $organizerUser->id,

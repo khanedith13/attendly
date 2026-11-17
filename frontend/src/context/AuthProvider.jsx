@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ApiError } from "../api/ApiError";
 import * as authService from "../services/authService";
 import { AuthContext } from "./AuthContext";
+import { refreshPublicSettings } from "../services/settings";
 
 const accountLabel = { student: "a student", organizer: "an organizer", admin: "an admin" };
 
@@ -11,6 +12,8 @@ export default function AuthProvider({ children }) {
 
   // On first load, restore the session (if any) from storage.
   useEffect(() => {
+    refreshPublicSettings();
+  
     authService
       .getCurrentUser()
       .then(setUser)

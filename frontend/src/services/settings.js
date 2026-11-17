@@ -1,4 +1,5 @@
 import { storage } from "../utils/storage";
+import api from "../api/axios";
 
 const SETTINGS_KEY = "attendly_settings_v1";
 
@@ -22,4 +23,19 @@ export function readSettings() {
 
 export function writeSettings(values) {
   storage.setJSON(SETTINGS_KEY, values);
+}
+
+// Copies public settings from the API into local storage so the
+// synchronous frontend validators can continue reading them.
+export async function refreshPublicSettings() {
+  try {
+    const { data } = await api.get("/settings/public");
+
+    storage.setJSON(SETTINGS_KEY, {
+      ...storage.getJSON(SETTINGS_KEY, {}),
+      ...data,
+    });
+  } catch {
+    // Keep the last cached settings if the API is unavailable.
+  }
 }

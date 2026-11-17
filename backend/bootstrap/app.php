@@ -24,10 +24,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn ($request, $e) => $request->is('api/*') || $request->expectsJson()
         );
-    
+
         $exceptions->render(
             fn (ModelNotFoundException $e, $request) => response()->json([
                 'message' => 'Not found.',
             ], 404)
         );
-    });
+    })
+    ->create();

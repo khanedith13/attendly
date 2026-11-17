@@ -113,51 +113,29 @@ export async function listEvents() {
   return data;
 }
 
-export async function registerForEvent(user, eventId) {
-  try {
-    const { data } = await api.post(
-      `/student/events/${eventId}/register`,
-    );
 
-    return data.registration;
-  } catch (error) {
-    throw new ApiError(
-      error.response?.data?.message ?? "Unable to register for this event.",
-      error.response?.status ?? 500,
-      error.response?.data?.errors ?? {},
-    );
-  }
+export async function registerForEvent(user, eventId) {
+  const { data } = await api.post(
+    `/student/events/${eventId}/register`,
+  );
+
+  return data.registration;
 }
 
 export async function cancelRegistration(user, registrationId) {
-  try {
-    const { data } = await api.delete(
-      `/student/registrations/${registrationId}`,
-    );
+  const { data } = await api.delete(
+    `/student/registrations/${registrationId}`,
+  );
 
-    return data.registration;
-  } catch (error) {
-    throw new ApiError(
-      error.response?.data?.message ?? "Unable to cancel this registration.",
-      error.response?.status ?? 500,
-      error.response?.data?.errors ?? {},
-    );
-  }
+  return data.registration;
 }
 
 export async function getMyRegistrations() {
-  try {
-    const { data } = await api.get("/student/registrations");
+  const { data } = await api.get("/student/registrations");
 
-    return data;
-  } catch (error) {
-    throw new ApiError(
-      error.response?.data?.message ?? "Unable to load your registrations.",
-      error.response?.status ?? 500,
-      error.response?.data?.errors ?? {},
-    );
-  }
+  return data;
 }
+
 
 /* ---------- Attendance ---------- */
 

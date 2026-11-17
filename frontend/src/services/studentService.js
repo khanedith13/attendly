@@ -1,4 +1,4 @@
-import { cancelRosterRegistration, markCheckIn, markCheckOut, upsertRegistration } from "./roster";
+import { markCheckIn, markCheckOut } from "./roster";
 import { ApiError } from "../api/ApiError";
 import { storage } from "../utils/storage";
 import { adjustCounts, getCatalogEvent } from "./catalog";
@@ -10,7 +10,6 @@ const DEMO_STUDENT_ID = 2; // the demo student in authService
 const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms));
 const stateKey = (userId) => `attendly_student_v2_${userId}`;
 const newToken = () => uuid();
-const byStart = (a, b) => new Date(a.startsAt) - new Date(b.startsAt);
 const isOpen = (event) =>
   event.status === "published" && (event.review ?? "approved") === "approved";
 const courseOf = (state, userId) =>
@@ -115,105 +114,49 @@ export async function listEvents() {
 }
 
 export async function registerForEvent(user, eventId) {
-  await delay();
-  const state = loadState(user.id);
-  const event = getCatalogEvent(eventId);
+  try {
+    const { data } = await api.post(
+      `/student/events/${eventId}/register`,
+    );
 
-  if (!event || !isOpen(event)) throw new ApiError("Event not found.", 404);
-  if (new Date(event.endsAt) < new Date()) {
-    throw new ApiError("Registration is closed for this event.", 409);
+    return data.registration;
+  } catch (error) {
+    throw new ApiError(
+      error.response?.data?.message ?? "Unable to register for this event.",
+      error.response?.status ?? 500,
+      error.response?.data?.errors ?? {},
+    );
   }
-
-  const existing = state.registrations.find((r) => r.eventId === eventId);
-  if (existing?.status === "registered") {
-    throw new ApiError("You are already registered for this event.", 409);
-  }
-  if (event.registered >= event.capacity) throw new ApiError("This event is full.", 409);
-
-  const now = new Date().toISOString();
-  let registration;
-  let registrations;
-
-  if (existing) {
-    // One row per student and event (like your ERD): re-registering reuses it.
-    registration = { ...existing, status: "registered", qrToken: newToken(), registeredAt: now };
-    registrations = state.registrations.map((r) => (r.id === existing.id ? registration : r));
-  } else {
-    registration = {
-      id: Date.now(),
-      eventId,
-      status: "registered",
-      qrToken: newToken(),
-      registeredAt: now,
-    };
-    registrations = [registration, ...state.registrations];
-  }
-
-  saveState(user.id, { ...state, registrations });
-  upsertRegistration({
-    eventId,
-    user,
-    studentId: state.studentId,
-    course: courseOf(state, user.id),
-    yearLevel: yearLevelOf(state),
-  });
-  adjustCounts(eventId, { registered: 1 });
-  return registration;
 }
 
 export async function cancelRegistration(user, registrationId) {
-  await delay();
-  const state = loadState(user.id);
-  const registration = state.registrations.find(
-    (r) => r.id === registrationId && r.status === "registered",
-  );
+  try {
+    const { data } = await api.delete(
+      `/student/registrations/${registrationId}`,
+    );
 
-  if (!registration) throw new ApiError("Registration not found.", 404);
-
-  const event = getCatalogEvent(registration.eventId);
-  if (state.activeSession?.eventId === registration.eventId) {
-    throw new ApiError("You are checked in to this event. Check out first.", 409);
+    return data.registration;
+  } catch (error) {
+    throw new ApiError(
+      error.response?.data?.message ?? "Unable to cancel this registration.",
+      error.response?.status ?? 500,
+      error.response?.data?.errors ?? {},
+    );
   }
-  if (event && new Date(event.startsAt) < new Date()) {
-    throw new ApiError("This event has already started and can no longer be cancelled.", 409);
-  }
-
-  saveState(user.id, {
-    ...state,
-    registrations: state.registrations.map((r) =>
-      r.id === registrationId ? { ...r, status: "cancelled" } : r,
-    ),
-  });
-  cancelRosterRegistration(registration.eventId, user.id);
-  adjustCounts(registration.eventId, { registered: -1 });
 }
 
-export async function getMyRegistrations(userId) {
-  await delay();
-  const state = loadState(userId);
+export async function getMyRegistrations() {
+  try {
+    const { data } = await api.get("/student/registrations");
 
-  const upcoming = upcomingRegistrations(state)
-    .map(joinEvent)
-    .filter(Boolean)
-    .filter(isOpen)
-    .sort(byStart);
-  const cancelled = state.registrations
-    .filter((r) => r.status === "cancelled")
-    .map(joinEvent)
-    .filter(Boolean);
-  const past = [...state.history].sort((a, b) => new Date(b.timeIn) - new Date(a.timeIn));
-
-  return {
-    upcoming,
-    cancelled,
-    past,
-    counts: {
-      total: upcoming.length + past.length + cancelled.length,
-      upcoming: upcoming.length,
-      attended: past.length,
-      cancelled: cancelled.length,
-    },
-  };
+    return data;
+  } catch (error) {
+    throw new ApiError(
+      error.response?.data?.message ?? "Unable to load your registrations.",
+      error.response?.status ?? 500,
+      error.response?.data?.errors ?? {},
+    );
+  }
 }
 
 /* ---------- Attendance ---------- */

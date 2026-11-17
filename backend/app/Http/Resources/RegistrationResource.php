@@ -21,14 +21,12 @@ class RegistrationResource extends JsonResource
         );
 
         return [
-            // Registration identity
             'id' => $this->id,
             'eventId' => $this->event_id,
             'qrToken' => $this->qr_token,
             'registeredAt' => $this->registered_at?->toISOString(),
             'registrationStatus' => $this->status,
 
-            // Event details used by the student UI
             'title' => $event->title,
             'description' => $event->description,
             'category' => $event->category,
@@ -37,13 +35,9 @@ class RegistrationResource extends JsonResource
             'startsAt' => $startsAt->toISOString(),
             'endsAt' => $endsAt->toISOString(),
 
-            // Current event registration count
             'registered' => $event->registrations()
                 ->where('status', 'registered')
                 ->count(),
-
-            // QR token for this student's registration only
-            'qrToken' => $this->qr_token,
         ];
     }
 }

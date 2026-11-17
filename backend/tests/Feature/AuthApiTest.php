@@ -18,7 +18,7 @@ class AuthApiTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed();
+        $this->seed(\Database\Seeders\SettingsSeeder::class);
 
         Setting::updateOrCreate(
             ['key' => 'school_domain'],

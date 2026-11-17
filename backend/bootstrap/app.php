@@ -15,19 +15,19 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-    $middleware->alias([
-        'role' => EnsureRole::class,
-        'active' => EnsureAccountIsActive::class,
-    ]);
+        $middleware->alias([
+            'role' => EnsureRole::class,
+            'active' => EnsureAccountIsActive::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-    $exceptions->shouldRenderJsonWhen(
-        fn ($request, $e) => $request->is('api/*') || $request->expectsJson()
-    );
-
-    $exceptions->render(
-        fn (ModelNotFoundException $e, $request) => response()->json([
-            'message' => 'Not found.',
-        ], 404)
-    );
-});
+        $exceptions->shouldRenderJsonWhen(
+            fn ($request, $e) => $request->is('api/*') || $request->expectsJson()
+        );
+    
+        $exceptions->render(
+            fn (ModelNotFoundException $e, $request) => response()->json([
+                'message' => 'Not found.',
+            ], 404)
+        );
+    });

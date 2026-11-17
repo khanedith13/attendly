@@ -1,9 +1,10 @@
 import { cancelRosterRegistration, markCheckIn, markCheckOut, upsertRegistration } from "./roster";
 import { ApiError } from "../api/ApiError";
 import { storage } from "../utils/storage";
-import { adjustCounts, getCatalog, getCatalogEvent } from "./catalog";
+import { adjustCounts, getCatalogEvent } from "./catalog";
 import { readSettings } from "./settings";
 import { uuid } from "../utils/uuid";
+import api from "../api/axios";
 
 const DEMO_STUDENT_ID = 2; // the demo student in authService
 const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -108,21 +109,9 @@ function upcomingRegistrations(state) {
   );
 }
 
-/* ---------- Browse events and registrations ---------- */
-
-export async function listEvents(userId) {
-  await delay();
-  const state = loadState(userId);
-  const mine = new Map(state.registrations.map((r) => [r.eventId, r.status]));
-  const now = Date.now();
-
-  return getCatalog()
-    .filter((event) => isOpen(event) && new Date(event.endsAt).getTime() >= now)
-    .map((event) => ({
-      ...event,
-      myStatus: mine.get(event.id) ?? null,
-      isFull: event.registered >= event.capacity,
-    }));
+export async function listEvents() {
+  const { data } = await api.get("/events");
+  return data;
 }
 
 export async function registerForEvent(user, eventId) {

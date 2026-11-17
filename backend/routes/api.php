@@ -4,6 +4,8 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PublicSettingsController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\OrganizerEventController;
+use App\Http\Controllers\StudentEventController;
 
 Route::get('/health', function () {
     return response()->json([
@@ -40,3 +42,16 @@ Route::middleware([
     Route::put('/', [AccountController::class, 'update']);
     Route::put('/password', [AccountController::class, 'password']);
 });
+Route::middleware(['auth:sanctum', 'active', 'role:organizer'])
+    ->prefix('organizer')
+    ->group(function () {
+        Route::get('/events', [OrganizerEventController::class, 'index']);
+        Route::post('/events', [OrganizerEventController::class, 'store']);
+        Route::get('/events/{event}', [OrganizerEventController::class, 'show']);
+        Route::put('/events/{event}', [OrganizerEventController::class, 'update']);
+        Route::post('/events/{event}/publish', [OrganizerEventController::class, 'publish']);
+        Route::post('/events/{event}/cancel', [OrganizerEventController::class, 'cancel']);
+    });
+
+Route::middleware(['auth:sanctum', 'active', 'role:student'])
+    ->get('/events', [StudentEventController::class, 'index']);

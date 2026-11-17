@@ -29,6 +29,20 @@ class Event extends Model
 {
     use HasFactory;
 
+    public function scopeWithCounts(Builder $query): Builder
+    {
+        return $query
+            ->with('organizer')
+            ->withCount([
+                'registrations as registered_count' => fn ($query) => $query
+                    ->where('status', 'registered'),
+
+                'attendances as checked_in_count' => fn ($query) => $query
+                    ->where('registrations.status', 'registered')
+                    ->whereNotNull('attendances.time_in'),
+            ]);
+    }
+
     protected function casts(): array
     {
         return [

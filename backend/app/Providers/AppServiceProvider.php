@@ -12,7 +12,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $connections = config('database.connections', []);
+
+        config([
+            'database.connections' => array_intersect_key(
+                $connections,
+                ['mysql' => true],
+            ),
+        ]);
     }
 
     /**

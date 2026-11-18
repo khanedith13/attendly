@@ -7,8 +7,15 @@ const vite = await createServer({
   appType: "custom",
   configFile: false,
   root: fileURLToPath(new URL("../..", import.meta.url)),
-  server: { middlewareMode: true },
+  optimizeDeps: {
+    noDiscovery: true,
+    include: [],
+  },
+  server: {
+    middlewareMode: true,
+  },
 });
+
 const { recordPublicAttendance } = await vite.ssrLoadModule("/src/services/roster.js");
 
 const eventKey = "attendly_events_v1";

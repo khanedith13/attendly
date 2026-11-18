@@ -6,6 +6,7 @@ use App\Http\Controllers\PublicSettingsController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OrganizerEventController;
 use App\Http\Controllers\StudentEventController;
+use App\Http\Controllers\StudentRegistrationController;
 
 Route::get('/health', function () {
     return response()->json([
@@ -55,3 +56,24 @@ Route::middleware(['auth:sanctum', 'active', 'role:organizer'])
 
 Route::middleware(['auth:sanctum', 'active', 'role:student'])
     ->get('/events', [StudentEventController::class, 'index']);
+
+    Route::middleware([
+        'auth:sanctum',
+        'active',
+        'role:student',
+    ])->prefix('student')->group(function () {
+        Route::get('/registrations', [
+            StudentRegistrationController::class,
+            'index',
+        ]);
+    
+        Route::post('/events/{event}/register', [
+            StudentRegistrationController::class,
+            'store',
+        ]);
+    
+        Route::delete('/registrations/{registration}', [
+            StudentRegistrationController::class,
+            'destroy',
+        ]);
+    });

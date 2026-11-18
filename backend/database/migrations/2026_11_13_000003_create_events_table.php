@@ -39,12 +39,8 @@ return new class extends Migration
             $table->index('category', 'idx_events_category');
         });
 
-        // The MySQL schema enforces these checks. SQLite's test schema is
-        // validated by request rules because this constraint is added later.
-        if (DB::getDriverName() === 'mysql') {
-            DB::statement('ALTER TABLE events ADD CONSTRAINT chk_events_times CHECK (end_time > start_time)');
-            DB::statement('ALTER TABLE events ADD CONSTRAINT chk_events_capacity CHECK (capacity >= 1)');
-        }
+        DB::statement('ALTER TABLE events ADD CONSTRAINT chk_events_times CHECK (end_time > start_time)');
+        DB::statement('ALTER TABLE events ADD CONSTRAINT chk_events_capacity CHECK (capacity >= 1)');
     }
 
     public function down(): void

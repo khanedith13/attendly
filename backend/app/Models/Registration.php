@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Registration extends Model
 {
     const CREATED_AT = 'registered_at';
+    const UPDATED_AT = 'updated_at';
 
     protected $fillable = [
         'user_id',

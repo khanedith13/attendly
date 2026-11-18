@@ -1,4 +1,3 @@
-
 <?php
 
 namespace App\Http\Resources;
@@ -12,6 +11,10 @@ class RegistrationResource extends JsonResource
     {
         $event = $this->event;
         $attendance = $this->attendance;
+
+        $attendanceStatus = $attendance?->time_in
+            ? ($attendance->attendance_status ?? 'present')
+            : 'absent';
 
         return [
             'id' => $this->id,
@@ -32,12 +35,12 @@ class RegistrationResource extends JsonResource
 
             'timeIn' => $attendance?->time_in?->toISOString(),
             'timeOut' => $attendance?->time_out?->toISOString(),
-            'attendance' => $attendance?->attendance_status
-                ?? 'absent',
+            'attendance' => $attendanceStatus,
 
-            'registered' => $event->registrations()
-                ->where('status', 'registered')
-                ->count(),
+            'registered' => $event->registered_count
+                ?? $event->registrations()
+                    ->where('status', 'registered')
+                    ->count(),
         ];
     }
 }

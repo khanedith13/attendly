@@ -96,53 +96,67 @@ class RegistrationService
     public function cancel(User $user, int $registrationId): Registration
     {
         return DB::transaction(function () use ($user, $registrationId) {
+            // Read the registration first to discover which event to lock.
+            // Do not lock this row yet: registration always locks the event first.
+            $registrationSnapshot = Registration::query()
+                ->whereKey($registrationId)
+                ->where('user_id', $user->id)
+                ->first();
+    
+            if (! $registrationSnapshot) {
+                throw new NotFoundHttpException(
+                    'Registration not found.'
+                );
+            }
+    
+            // Keep the same lock order as register(): event, then registration.
+            $event = Event::query()
+                ->whereKey($registrationSnapshot->event_id)
+                ->lockForUpdate()
+                ->first();
+    
+            if (! $event) {
+                throw new NotFoundHttpException('Event not found.');
+            }
+    
             $registration = Registration::query()
                 ->whereKey($registrationId)
                 ->where('user_id', $user->id)
                 ->lockForUpdate()
                 ->first();
-
+    
             if (! $registration) {
                 throw new NotFoundHttpException(
                     'Registration not found.'
                 );
             }
-
+    
             if ($registration->status !== 'registered') {
                 throw new ConflictHttpException(
                     'This registration is already cancelled.'
                 );
             }
-
-            $event = Event::query()
-                ->whereKey($registration->event_id)
-                ->lockForUpdate()
-                ->first();
-
-            if (! $event) {
-                throw new NotFoundHttpException('Event not found.');
-            }
-
+    
             if ($this->eventStartsAt($event)->isPast()) {
                 throw new ConflictHttpException(
                     'This event has already started and can no longer be cancelled.'
                 );
             }
-
+    
             $hasCheckedIn = $registration->attendance()
                 ->whereNotNull('time_in')
                 ->exists();
-
+    
             if ($hasCheckedIn) {
                 throw new ConflictHttpException(
                     'You are checked in to this event. Check out first.'
                 );
             }
-
+    
             $registration->update([
                 'status' => 'cancelled',
             ]);
-
+    
             return $registration->fresh(['event']);
         }, 3);
     }

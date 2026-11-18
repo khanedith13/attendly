@@ -51,6 +51,78 @@ class RegistrationApiTest extends TestCase
             'event_id' => $this->event->id,
             'status' => 'registered',
         ]);
+
+        $response
+            ->assertCreated()
+            ->assertJsonPath(
+                'registration.registrationStatus',
+                'registered'
+            )
+            ->assertJsonPath(
+                'registration.eventId',
+                $this->event->id
+            )
+            ->assertJsonPath(
+                'registration.event',
+                $this->event->title
+            )
+            ->assertJsonPath(
+                'registration.attendance',
+                'absent'
+            )
+            ->assertJsonStructure([
+                'registration' => [
+                    'startsAt',
+                    'endsAt',
+                    'timeIn',
+                    'timeOut',
+                ],
+            ]);
+    }
+
+    public function test_past_no_show_is_absent_and_not_counted_as_attended(): void
+    {
+        $this->event->update([
+            'event_date' => now()->subDay()->toDateString(),
+        ]);
+    
+        $this->createRegistration(
+            $this->student,
+            $this->event
+        );
+    
+        Sanctum::actingAs($this->student);
+    
+        $this->getJson('/api/student/registrations')
+            ->assertOk()
+            ->assertJsonCount(1, 'past')
+            ->assertJsonPath('past.0.event', $this->event->title)
+            ->assertJsonPath('past.0.attendance', 'absent')
+            ->assertJsonPath('counts.past', 1)
+            ->assertJsonPath('counts.attended', 0);
+    }
+
+    public function test_student_cannot_cancel_after_checking_in(): void
+    {
+        $registration = $this->createRegistration(
+            $this->student,
+            $this->event
+        );
+    
+        $registration->attendance()->create([
+            'time_in' => now(),
+        ]);
+    
+        Sanctum::actingAs($this->student);
+    
+        $this->deleteJson(
+            "/api/student/registrations/{$registration->id}"
+        )->assertStatus(409);
+    
+        $this->assertDatabaseHas('registrations', [
+            'id' => $registration->id,
+            'status' => 'registered',
+        ]);
     }
 
     public function test_student_cannot_register_twice_for_same_event(): void
@@ -121,6 +193,10 @@ class RegistrationApiTest extends TestCase
             'id' => $registration->id,
             'status' => 'cancelled',
         ]);
+
+        $this->assertNotNull(
+            $registration->fresh()->updated_at
+        );
     }
 
     public function test_student_cannot_cancel_another_students_registration(): void

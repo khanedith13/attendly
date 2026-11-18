@@ -57,22 +57,28 @@ class StudentRegistrationController extends Controller
     public function index(Request $request): JsonResponse
     {
         $registrations = Registration::query()
-            ->with(['event', 'attendance'])
+            ->with([
+                'event' => fn ($query) => $query->withCount([
+                    'registrations as registered_count' => fn ($registrations) => $registrations
+                        ->where('status', 'registered'),
+                ]),
+                'attendance',
+            ])
             ->where('user_id', $request->user()->id)
             ->orderByDesc('registered_at')
             ->get();
 
+        $now = now();
+
         $upcoming = $registrations
-            ->filter(function (Registration $registration) {
+            ->filter(function (Registration $registration) use ($now) {
                 return $registration->status === 'registered'
                     && $registration->event
                     && ! $registration->attendance?->time_in
-                    && now()->lt(
-                        $this->eventEnd($registration)
-                    );
+                    && $now->lt($registration->event->ends_at);
             })
             ->sortBy(fn (Registration $registration) =>
-                $this->eventStart($registration)->timestamp
+                $registration->event->starts_at->timestamp
             )
             ->values();
 
@@ -81,15 +87,21 @@ class StudentRegistrationController extends Controller
             ->values();
 
         $past = $registrations
-            ->filter(function (Registration $registration) {
+            ->filter(function (Registration $registration) use ($now) {
                 return $registration->status === 'registered'
                     && $registration->event
                     && (
                         $registration->attendance?->time_in !== null
-                        || now()->gte($this->eventEnd($registration))
+                        || $now->gte($registration->event->ends_at)
                     );
             })
             ->values();
+
+        $attendedCount = $past
+            ->filter(fn (Registration $registration) =>
+                $registration->attendance?->time_in !== null
+            )
+            ->count();
 
         return response()->json([
             'upcoming' => RegistrationResource::collection($upcoming)
@@ -103,27 +115,10 @@ class StudentRegistrationController extends Controller
                     + $cancelled->count()
                     + $past->count(),
                 'upcoming' => $upcoming->count(),
-                'attended' => $past->count(),
+                'past' => $past->count(),
+                'attended' => $attendedCount,
                 'cancelled' => $cancelled->count(),
             ],
         ]);
-    }
-
-    private function eventStart(Registration $registration): \Illuminate\Support\Carbon
-    {
-        return \Illuminate\Support\Carbon::parse(
-            $registration->event->event_date
-        )->setTimeFromTimeString(
-            (string) $registration->event->start_time
-        );
-    }
-    
-    private function eventEnd(Registration $registration): \Illuminate\Support\Carbon
-    {
-        return \Illuminate\Support\Carbon::parse(
-            $registration->event->event_date
-        )->setTimeFromTimeString(
-            (string) $registration->event->end_time
-        );
     }
 }

@@ -113,7 +113,6 @@ export async function listEvents() {
   return data;
 }
 
-
 export async function registerForEvent(user, eventId) {
   const { data } = await api.post(
     `/student/events/${eventId}/register`,
@@ -135,7 +134,6 @@ export async function getMyRegistrations() {
 
   return data;
 }
-
 
 /* ---------- Attendance ---------- */
 

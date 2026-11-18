@@ -20,12 +20,10 @@ return new class extends Migration
             $table->unique('registration_id', 'unique_registration_attendance');
         });
 
-        if (DB::getDriverName() === 'mysql') {
-            DB::statement(
-                'ALTER TABLE attendances ADD CONSTRAINT chk_attendance_times '
-                .'CHECK (time_out IS NULL OR (time_in IS NOT NULL AND time_out >= time_in))'
-            );
-        }
+        DB::statement(
+            'ALTER TABLE attendances ADD CONSTRAINT chk_attendance_times '
+            .'CHECK (time_out IS NULL OR (time_in IS NOT NULL AND time_out >= time_in))'
+        );
     }
 
     public function down(): void

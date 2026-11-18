@@ -163,16 +163,23 @@ class RegistrationApiTest extends TestCase
 
     public function test_student_cannot_register_for_unapproved_event(): void
     {
-        $this->event->update([
+        $this->event->forceFill([
             'review_status' => 'pending',
-        ]);
-
+        ])->save();
+    
+        $this->event->refresh();
+    
+        $this->assertSame(
+            'pending',
+            $this->event->review_status
+        );
+    
         Sanctum::actingAs($this->student);
-
+    
         $this->postJson(
             "/api/student/events/{$this->event->id}/register"
         )->assertNotFound();
-
+    
         $this->assertDatabaseCount('registrations', 0);
     }
 
@@ -297,7 +304,7 @@ class RegistrationApiTest extends TestCase
     private function createEvent(int $capacity = 10): Event
     {
         $organizerUser = new User();
-
+    
         $organizerUser->forceFill([
             'name' => 'Test Organizer',
             'email' => 'organizer-' . Str::uuid() . '@school.edu.ph',
@@ -305,15 +312,17 @@ class RegistrationApiTest extends TestCase
             'role' => 'organizer',
             'status' => 'active',
         ]);
-        
+    
         $organizerUser->save();
-
+    
         $organizer = EventOrganizer::query()->create([
             'user_id' => $organizerUser->id,
             'organization_name' => 'Test Organization',
         ]);
-
-        return Event::query()->create([
+    
+        $event = new Event();
+    
+        $event->forceFill([
             'organizer_id' => $organizer->id,
             'title' => 'Test Event',
             'description' => 'Registration API test event',
@@ -330,6 +339,10 @@ class RegistrationApiTest extends TestCase
             'qr_in_token' => (string) Str::uuid(),
             'qr_out_token' => (string) Str::uuid(),
         ]);
+    
+        $event->save();
+    
+        return $event->refresh();
     }
 
     private function createRegistration(

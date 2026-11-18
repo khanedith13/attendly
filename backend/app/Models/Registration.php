@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Str;
 
 class Registration extends Model
 {
@@ -20,6 +21,15 @@ class Registration extends Model
         'registered_at',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function (Registration $registration) {
+            if (blank($registration->qr_token)) {
+                $registration->qr_token = (string) Str::uuid();
+            }
+        });
+    }
+    
     protected function casts(): array
     {
         return [

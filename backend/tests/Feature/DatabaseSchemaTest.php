@@ -265,7 +265,7 @@ class DatabaseSchemaTest extends TestCase
             'users.created_at',
             'event_organizers.created_at',
             'events.created_at',
-            'registrations.created_at',
+            'registrations.registered_at',
             'attendances.created_at',
             'registrations.registered_at',
             'settings.updated_at',

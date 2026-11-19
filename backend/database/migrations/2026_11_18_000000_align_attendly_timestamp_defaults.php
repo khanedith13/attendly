@@ -10,7 +10,6 @@ return new class extends Migration
         'users',
         'event_organizers',
         'events',
-        'registrations',
         'attendances',
     ];
 
@@ -25,6 +24,13 @@ return new class extends Migration
                 $table,
             ));
         }
+
+        DB::statement(
+            'ALTER TABLE `registrations`
+                MODIFY `registered_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+                MODIFY `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
+                    ON UPDATE CURRENT_TIMESTAMP'
+        );
 
         DB::statement(
             'ALTER TABLE `settings`
@@ -43,6 +49,12 @@ return new class extends Migration
                 $table,
             ));
         }
+
+        DB::statement(
+            'ALTER TABLE `registrations`
+                MODIFY `registered_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+                MODIFY `updated_at` TIMESTAMP NULL DEFAULT NULL'
+        );
 
         DB::statement(
             'ALTER TABLE `settings`

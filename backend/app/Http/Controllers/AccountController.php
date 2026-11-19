@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ChangePasswordRequest;
 use App\Http\Requests\UpdateAccountRequest;
+use App\Services\AuditLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -46,7 +47,8 @@ class AccountController extends Controller
     }
 
     public function password(
-        ChangePasswordRequest $request
+        ChangePasswordRequest $request,
+        AuditLogger $audit
     ): JsonResponse {
         $data = $request->validated();
         $user = $request->user();
@@ -61,15 +63,25 @@ class AccountController extends Controller
         $user->password_changed_at = now();
         $user->save();
 
-        // Revoke all other sessions, preserving the current access token.
+        // Keep the current token; revoke every other device/session token.
         $currentToken = $user->currentAccessToken();
 
         $user->tokens()
             ->when(
                 $currentToken && isset($currentToken->id),
-                fn ($query) => $query->where('id', '!=', $currentToken->id)
+                fn ($query) => $query->where(
+                    'id',
+                    '!=',
+                    $currentToken->id
+                )
             )
             ->delete();
+
+        $audit->record(
+            $user,
+            'Password changed',
+            $user->email
+        );
 
         return response()->json([
             'message' => 'Password changed successfully.',

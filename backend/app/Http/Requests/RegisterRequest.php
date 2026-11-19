@@ -4,10 +4,18 @@ namespace App\Http\Requests;
 
 use App\Services\SettingsService;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Validator;
 
 class RegisterRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'email' => Str::lower(trim((string) $this->input('email'))),
+        ]);
+    }
+
     public function authorize(): bool
     {
         return true;
@@ -18,7 +26,12 @@ class RegisterRequest extends FormRequest
         return [
             'firstName' => ['required', 'string', 'max:50'],
             'lastName' => ['required', 'string', 'max:50'],
-            'email' => ['required', 'email', 'max:150', 'unique:users,email'],
+            'email' => [
+                'required',
+                'email',
+                'max:150',
+                'unique:users,email',
+            ],
             'password' => ['required', 'string', 'min:8'],
             'confirmPassword' => ['required', 'same:password'],
             'role' => ['required', 'in:student,organizer,admin'],
@@ -60,7 +73,7 @@ class RegisterRequest extends FormRequest
                 if (
                     $settings->bool('require_school_gmail')
                     && ! str_ends_with(
-                        strtolower($this->input('email', '')),
+                        $this->input('email', ''),
                         '@'.$domain
                     )
                 ) {

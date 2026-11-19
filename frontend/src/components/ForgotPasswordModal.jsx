@@ -15,13 +15,24 @@ export default function ForgotPasswordModal({ initialEmail = "", onClose }) {
   async function handleSubmit(event) {
     event.preventDefault();
 
-    if (!email.trim()) return setError("Email is required.");
-    if (!isValidEmail(email)) return setError("Enter a valid email address.");
+    if (!email.trim()) {
+      setError("Email is required.");
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      setError("Enter a valid email address.");
+      return;
+    }
 
     setSending(true);
-    await requestPasswordReset(email);
-    setSent(true);
-    setSending(false);
+
+    try {
+      await requestPasswordReset(email);
+      setSent(true);
+    } finally {
+      setSending(false);
+    }
   }
 
   return (

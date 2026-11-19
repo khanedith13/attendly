@@ -1,6 +1,6 @@
 # Attendly database: decisions record (spec 4)
 
-Reference SQL: `ERD_SQL_SCRIPT_SPEC4.sql`. It replaces spec 3.
+Reference SQL: `docs/database/Updated Attendly SQL.sql` Attendly database
 The Laravel migrations must produce this same structure.
 
 ## ERD
@@ -77,6 +77,7 @@ erDiagram
         bigint id PK
         bigint user_id FK "nullable"
         varchar actor_name
+        varchar actor_role "nullable"
         varchar action
         varchar target
         enum result "success, failed"

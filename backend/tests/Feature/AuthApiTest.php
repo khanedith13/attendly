@@ -402,7 +402,7 @@ public function test_logout_revokes_only_the_current_token(): void
         $this->withToken($token)
             ->postJson('/api/organizer/events', [
                 'title' => 'Pending Organizer Event',
-                'category' => 'Academic',
+                'category' => 'Technology',
                 'venue' => 'Main Hall',
                 'date' => now()->addDays(5)->toDateString(),
                 'startTime' => '09:00',

@@ -34,7 +34,11 @@ class PasswordResetNotification extends Notification
             ->greeting('Hello!')
             ->line('We received a request to reset your Attendly account password.')
             ->action('Reset Password', $resetUrl)
-            ->line('This link expires in 60 minutes.')
+            ->line(
+                'This link expires in '
+                .config('auth.passwords.users.expire')
+                .' minutes.'
+            )
             ->line('If you did not request this change, you can ignore this email.');
     }
 }

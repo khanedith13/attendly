@@ -10,6 +10,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
+use App\Notifications\PasswordResetNotification;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Password;
 
 class AuthApiTest extends TestCase
 {
@@ -408,5 +411,93 @@ public function test_logout_revokes_only_the_current_token(): void
                 'publish' => true,
             ])
             ->assertForbidden();
+    }
+
+public function test_forgot_password_sends_notification_for_existing_user(): void
+{
+    Notification::fake();
+
+    $user = User::factory()->create([
+        'email' => 'student@school.edu.ph',
+        'role' => 'student',
+        'status' => 'active',
+    ]);
+
+    $this->postJson('/api/auth/forgot-password', [
+        'email' => $user->email,
+    ])->assertStatus(202);
+
+    Notification::assertSentTo(
+        $user,
+        PasswordResetNotification::class
+    );
+}
+
+public function test_forgot_password_does_not_disclose_unknown_email(): void
+{
+    Notification::fake();
+
+    $this->postJson('/api/auth/forgot-password', [
+        'email' => 'unknown@school.edu.ph',
+    ])->assertStatus(202);
+
+    Notification::assertNothingSent();
+}
+
+public function test_password_reset_changes_password_and_revokes_tokens(): void
+{
+    $user = User::factory()->create([
+        'email' => 'student@school.edu.ph',
+        'password' => 'old-password',
+        'role' => 'student',
+        'status' => 'active',
+    ]);
+
+    $token = Password::createToken($user);
+
+    $existingToken = $user->createToken('old-session');
+
+    $this->postJson('/api/auth/reset-password', [
+        'email' => $user->email,
+        'token' => $token,
+        'password' => 'new-password123',
+        'password_confirmation' => 'new-password123',
+    ])
+        ->assertOk()
+        ->assertJsonPath(
+            'message',
+            'Password reset successfully.'
+        );
+
+    $this->assertTrue(
+        Hash::check('new-password123', $user->fresh()->password)
+    );
+
+    $this->assertDatabaseMissing('personal_access_tokens', [
+        'id' => $existingToken->accessToken->id,
+    ]);
+
+    $this->assertNotNull($user->fresh()->password_changed_at);
+}
+
+    public function test_password_reset_rejects_invalid_token(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'student@school.edu.ph',
+            'password' => 'old-password',
+            'role' => 'student',
+            'status' => 'active',
+        ]);
+
+        $this->postJson('/api/auth/reset-password', [
+            'email' => $user->email,
+            'token' => 'invalid-reset-token',
+            'password' => 'new-password123',
+            'password_confirmation' => 'new-password123',
+        ])->assertUnprocessable();
+
+        $this->assertTrue(
+            Hash::check('old-password', $user->fresh()->password)
+        );
     }
 }

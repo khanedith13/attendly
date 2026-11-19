@@ -106,7 +106,7 @@ export default function ResetPassword() {
               autoComplete="new-password"
             />
 
-            {error && <Notice tone="error">{error}</Notice>}
+            {error && <Notice tone="danger">{error}</Notice>}
 
             <Button
               type="submit"

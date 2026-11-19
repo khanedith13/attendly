@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-
+import ResetPassword from "../pages/auth/ResetPassword";
 import AppLayout from "../layouts/AppLayout";
 import BrowserAttendance from "../pages/BrowserAttendance";
 import NotFound from "../pages/NotFound";
@@ -39,6 +39,8 @@ export default function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Route>
+
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* Public QR destinations; these must stay outside authenticated route groups. */}
       <Route path="/check-in/:token" element={<BrowserAttendance direction="in" />} />

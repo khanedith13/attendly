@@ -77,3 +77,19 @@ export async function requestPasswordReset(email) {
     // Always show the same result to avoid revealing whether an email exists.
   }
 }
+
+export async function resetPassword({
+  token,
+  email,
+  password,
+  password_confirmation,
+}) {
+  const { data } = await api.post("/auth/reset-password", {
+    token,
+    email: email.trim().toLowerCase(),
+    password,
+    password_confirmation,
+  });
+
+  return data;
+}

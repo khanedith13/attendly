@@ -45,21 +45,21 @@ class AdminUserOrganizerApiTest extends TestCase
     public function test_admin_can_create_users_and_organizer_profile(): void
     {
         Sanctum::actingAs(User::factory()->admin()->create());
-
+    
         $this->postJson('/api/admin/users', [
             'name' => 'New Organizer',
-            'email' => 'NEW.ORGANIZER@example.edu',
+            'email' => 'NEW.ORGANIZER@school.edu.ph',
             'password' => 'temporary-password',
             'role' => 'organizer',
         ])
             ->assertCreated()
             ->assertJsonPath('user.name', 'New Organizer')
-            ->assertJsonPath('user.email', 'new.organizer@example.edu')
+            ->assertJsonPath('user.email', 'new.organizer@school.edu.ph')
             ->assertJsonPath('user.role', 'organizer')
             ->assertJsonPath('user.status', 'active');
-
-        $created = User::where('email', 'new.organizer@example.edu')->firstOrFail();
-
+    
+        $created = User::where('email', 'new.organizer@school.edu.ph')->firstOrFail();
+    
         $this->assertTrue(Hash::check('temporary-password', $created->password));
         $this->assertDatabaseHas('event_organizers', [
             'user_id' => $created->id,

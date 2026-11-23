@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PublicSettingsController;
 use Illuminate\Support\Facades\Route;
@@ -52,6 +53,7 @@ Route::middleware([
     Route::put('/', [AccountController::class, 'update']);
     Route::put('/password', [AccountController::class, 'password']);
 });
+
 Route::middleware(['auth:sanctum', 'active', 'role:organizer'])
     ->prefix('organizer')
     ->group(function () {
@@ -66,23 +68,38 @@ Route::middleware(['auth:sanctum', 'active', 'role:organizer'])
 Route::middleware(['auth:sanctum', 'active', 'role:student'])
     ->get('/events', [StudentEventController::class, 'index']);
 
-    Route::middleware([
-        'auth:sanctum',
+Route::middleware([
+    'auth:sanctum',
+    'active',
+    'role:student',
+])->prefix('student')->group(function () {
+    Route::get('/registrations', [
+        StudentRegistrationController::class,
+        'index',
+    ]);
+
+    Route::post('/events/{event}/register', [
+        StudentRegistrationController::class,
+        'store',
+    ]);
+
+    Route::delete('/registrations/{registration}', [
+        StudentRegistrationController::class,
+        'destroy',
+    ]);
+
+    Route::get('/attendance/active', [
+        AttendanceController::class,
         'active',
-        'role:student',
-    ])->prefix('student')->group(function () {
-        Route::get('/registrations', [
-            StudentRegistrationController::class,
-            'index',
-        ]);
-    
-        Route::post('/events/{event}/register', [
-            StudentRegistrationController::class,
-            'store',
-        ]);
-    
-        Route::delete('/registrations/{registration}', [
-            StudentRegistrationController::class,
-            'destroy',
-        ]);
-    });
+    ]);
+
+    Route::post('/attendance/check-in', [
+        AttendanceController::class,
+        'checkIn',
+    ]);
+
+    Route::post('/attendance/check-out', [
+        AttendanceController::class,
+        'checkOut',
+    ]);
+});

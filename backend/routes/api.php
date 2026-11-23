@@ -8,6 +8,13 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OrganizerEventController;
 use App\Http\Controllers\StudentEventController;
 use App\Http\Controllers\StudentRegistrationController;
+use App\Http\Controllers\AdminSettingsController;
+use App\Http\Controllers\AdminAuditLogController;
+use App\Http\Controllers\AdminOrganizerController;
+use App\Http\Controllers\AdminEventController;
+use App\Http\Controllers\AdminAttendanceController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminUserController;
 
 Route::get('/health', function () {
     return response()->json([
@@ -43,6 +50,23 @@ Route::prefix('auth')->group(function () {
         Route::get('/me', [AuthController::class, 'me']);
     });
 });
+
+Route::middleware(['auth:sanctum', 'active', 'role:admin'])
+    ->prefix('admin')
+    ->group(function () {
+        Route::get('/settings', [AdminSettingsController::class, 'show']);
+        Route::put('/settings', [AdminSettingsController::class, 'update']);
+        Route::get('/audit-logs', [AdminAuditLogController::class, 'index']);
+        Route::get('/users', [AdminUserController::class, 'index']);
+        Route::post('/users', [AdminUserController::class, 'store']);
+        Route::patch('/users/{user}', [AdminUserController::class, 'update']);
+        Route::get('/organizers', [AdminOrganizerController::class, 'index']);
+        Route::patch('/organizers/{user}/status', [AdminOrganizerController::class, 'updateStatus']);
+        Route::get('/events', [AdminEventController::class, 'index']);
+        Route::patch('/events/{event}/review', [AdminEventController::class, 'updateReview']);
+        Route::get('/attendance', [AdminAttendanceController::class, 'index']);
+        Route::get('/dashboard', [AdminDashboardController::class, 'show']);
+    });
 
 Route::middleware([
     'auth:sanctum',

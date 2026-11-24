@@ -31,6 +31,19 @@ class AttendanceController extends Controller
     /** Record attendance-in for the authenticated student's registration. */
     public function checkIn(CheckInRequest $request): JsonResponse
     {
+        $data = $request->validated();
+        $path = $request->file('selfie')->store('attendance/selfies', 'local');
+
+        try {
+            $attendance = $this->attendanceService->checkIn(
+                $request->user(),
+                [...$data, 'selfie_in_path' => $path],
+            );
+        } catch (Throwable $exception) {
+            Storage::disk('local')->delete($path);
+            throw $exception;
+        }
+
         $attendance = $this->attendanceService->checkIn(
             $request->user(),
             $request->validated(),

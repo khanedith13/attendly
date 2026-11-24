@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OrganizerEventController;
 use App\Http\Controllers\StudentEventController;
 use App\Http\Controllers\StudentRegistrationController;
+use App\Http\Controllers\OrganizerDashboardController;
+use App\Http\Controllers\OrganizerRosterController;
+use App\Http\Controllers\OrganizerProfileController;
 
 Route::get('/health', function () {
     return response()->json([
@@ -62,6 +65,12 @@ Route::middleware(['auth:sanctum', 'active', 'role:organizer'])
         Route::post('/events/{event}/publish', [OrganizerEventController::class, 'publish']);
         Route::post('/events/{event}/cancel', [OrganizerEventController::class, 'cancel']);
     });
+
+Route::get('/dashboard', [OrganizerDashboardController::class, 'show']);
+Route::get('/attendees', [OrganizerRosterController::class, 'attendees']);
+Route::get('/registrations', [OrganizerRosterController::class, 'registrations']);
+Route::get('/profile', [OrganizerProfileController::class, 'show']);
+Route::put('/profile', [OrganizerProfileController::class, 'update']);
 
 Route::middleware(['auth:sanctum', 'active', 'role:student'])
     ->get('/events', [StudentEventController::class, 'index']);

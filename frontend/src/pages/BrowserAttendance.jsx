@@ -1,93 +1,71 @@
-import { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useState } from "react";
+import { Link, useLocation, useParams } from "react-router-dom";
 import Button from "../components/Button";
 import Card from "../components/Card";
-import FormField from "../components/FormField";
+import LoadingBlock from "../components/LoadingBlock";
 import Modal from "../components/Modal";
 import Notice from "../components/Notice";
 import PageHeader from "../components/PageHeader";
-import SelfieCapture from "../components/SelfieCapture";
-import { getCatalog } from "../services/catalog";
-import { recordPublicAttendance } from "../services/roster";
-import { firstErrors } from "../utils/apiErrors";
+import { useAuth } from "../hooks/useAuth";
+import { checkIn, checkOut } from "../services/studentService";
 import { formatShortDateTime } from "../utils/format";
-import { isStudentId } from "../utils/validators";
 
 export default function BrowserAttendance({ direction }) {
   const { token } = useParams();
-  const [values, setValues] = useState({
-    studentId: "",
-    name: "",
-    course: "",
-    yearLevel: "",
-  });
-  const [selfie, setSelfie] = useState("");
-  const [errors, setErrors] = useState({});
-  const [errorMessage, setErrorMessage] = useState("");
+  const location = useLocation();
+  const { user, loading: authLoading } = useAuth();
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const [receipt, setReceipt] = useState(null);
 
-  const event = useMemo(() => {
-    const tokenField = direction === "in" ? "qrIn" : "qrOut";
-    return getCatalog().find((item) => item[tokenField] === token) ?? null;
-  }, [direction, token]);
+  if (authLoading) return <LoadingBlock />;
 
-  function handleChange(changeEvent) {
-    const { name, value } = changeEvent.target;
-    setValues((current) => ({ ...current, [name]: value }));
-    setErrors((current) => ({ ...current, [name]: undefined }));
-    setErrorMessage("");
-  }
-
-  async function handleSubmit(submitEvent) {
-    submitEvent.preventDefault();
-    if (submitting || !event) return;
-    if (!selfie) {
-      setErrorMessage("Take a selfie before submitting attendance.");
-      return;
-    }
-    const nextErrors = {};
-    if (!values.studentId.trim()) nextErrors.studentId = "Student ID is required.";
-    else if (!isStudentId(values.studentId)) {
-      nextErrors.studentId = "Use the format 2026-10452.";
-    }
-    if (!values.name.trim()) nextErrors.name = "Full name is required.";
-    if (!values.course.trim()) nextErrors.course = "Course is required.";
-    if (!values.yearLevel.trim()) nextErrors.yearLevel = "Year level is required.";
-    if (Object.keys(nextErrors).length > 0) {
-      setErrors(nextErrors);
-      return;
-    }
-
-    setSubmitting(true);
-    setErrors({});
-    setErrorMessage("");
-    try {
-      const attendance = recordPublicAttendance({
-        token,
-        direction,
-        ...values,
-        selfie,
-      });
-      setReceipt(attendance);
-    } catch (submitError) {
-      setErrors(firstErrors(submitError.errors));
-      setErrorMessage(submitError.message);
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  if (!event) {
+  if (!user) {
     return (
       <main style={{ width: "min(100% - 32px, 680px)", margin: "48px auto" }}>
-        <Card title="Invalid attendance QR">
-          <Notice tone="danger">
-            This attendance link is invalid or does not belong to an event in this browser.
+        <Card title="Log in to record attendance">
+          <Notice tone="info">
+            Sign in with your student account, then scan this event QR code again.
           </Notice>
+          <Link to="/login" state={{ from: location }} className="link-muted">
+            Go to login
+          </Link>
         </Card>
       </main>
     );
+  }
+
+  if (user.role !== "student") {
+    return (
+      <main style={{ width: "min(100% - 32px, 680px)", margin: "48px auto" }}>
+        <Card title="Student account required">
+          <Notice tone="danger">Only a signed-in student can submit attendance.</Notice>
+        </Card>
+      </main>
+    );
+  }
+
+  async function submitAttendance() {
+    if (submitting) return;
+    setSubmitting(true);
+    setError("");
+
+    try {
+      const result =
+        direction === "in"
+          ? await checkIn(user, { qrToken: token })
+          : await checkOut(user, { qrToken: token });
+
+      setReceipt({
+        event: direction === "in" ? result.eventTitle : result.event,
+        time: direction === "in" ? result.checkedInAt : result.timeOut,
+        direction,
+      });
+    } catch (submitError) {
+      setError(submitError.message);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const directionLabel = direction === "in" ? "Attendance in" : "Attendance out";
@@ -97,86 +75,28 @@ export default function BrowserAttendance({ direction }) {
       <PageHeader
         eyebrow="Event attendance"
         title={directionLabel}
-        subtitle="Enter your registered student details and take a required selfie to submit."
+        subtitle="Confirm to submit this QR code using your signed-in student account."
       />
 
-      <Card title={event.title}>
-        <form className="attendance__form" onSubmit={handleSubmit}>
-          <FormField
-            id="studentId"
-            name="studentId"
-            label="Student ID"
-            placeholder="2026-10452"
-            value={values.studentId}
-            onChange={handleChange}
-            error={errors.studentId}
-            autoComplete="off"
-          />
-          <FormField
-            id="fullName"
-            name="name"
-            label="Full name"
-            value={values.name}
-            onChange={handleChange}
-            error={errors.name}
-            autoComplete="name"
-          />
-          <FormField
-            id="course"
-            name="course"
-            label="Course"
-            value={values.course}
-            onChange={handleChange}
-            error={errors.course}
-          />
-          <FormField
-            id="yearLevel"
-            name="yearLevel"
-            label="Year level"
-            placeholder="e.g. 3rd Year"
-            value={values.yearLevel}
-            onChange={handleChange}
-            error={errors.yearLevel}
-          />
-
-          <p className="attendance__note">
-            Your selfie is shared with the event organizer for attendance verification.
-          </p>
-          <SelfieCapture
-            key={token}
-            onCapture={(image) => {
-              setSelfie(image);
-              setErrorMessage("");
-            }}
-          />
-          {submitting && <Notice tone="info">Submitting attendance...</Notice>}
-          {errorMessage && <Notice tone="danger">{errorMessage}</Notice>}
-          <Button type="submit" size="lg" className="btn--block" disabled={submitting || !selfie}>
-            {submitting ? "Submitting..." : "Submit attendance"}
-          </Button>
-        </form>
+      <Card title="Confirm attendance">
+        <p>Signed in as {user.name} ({user.email}).</p>
+        {error && <Notice tone="danger">{error}</Notice>}
+        <Button className="btn--block" disabled={submitting} onClick={submitAttendance}>
+          {submitting ? "Submitting..." : `Confirm ${directionLabel.toLowerCase()}`}
+        </Button>
       </Card>
 
       {receipt && (
         <Modal title="Attendance confirmed" onClose={() => setReceipt(null)}>
           <div className="attendance__form">
             <p>
-              <strong>Event:</strong> {receipt.event.title}
+              <strong>Event:</strong> {receipt.event}
             </p>
             <p>
               <strong>{directionLabel}:</strong> {formatShortDateTime(receipt.time)}
             </p>
             <p>
-              <strong>Student ID:</strong> {receipt.student.studentId}
-            </p>
-            <p>
-              <strong>Full name:</strong> {receipt.student.name}
-            </p>
-            <p>
-              <strong>Course:</strong> {receipt.student.course}
-            </p>
-            <p>
-              <strong>Year level:</strong> {receipt.student.yearLevel}
+              <strong>Student:</strong> {user.name}
             </p>
             <Button variant="outline" className="btn--block" onClick={() => setReceipt(null)}>
               Close

@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import AsyncError from "../../components/AsyncError";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
 import LoadingBlock from "../../components/LoadingBlock";
@@ -6,22 +7,25 @@ import Modal from "../../components/Modal";
 import Notice from "../../components/Notice";
 import PageHeader from "../../components/PageHeader";
 import ScannerPreview from "../../components/ScannerPreview";
-import SelfieCapture from "../../components/SelfieCapture";
 import { useAsyncData } from "../../hooks/useAsyncData";
 import { useAuth } from "../../hooks/useAuth";
 import { useTopbarBadge } from "../../hooks/useTopbarBadge";
-import { getCatalog } from "../../services/catalog";
 import { checkOut, getAttendanceOutData } from "../../services/studentService";
-import { firstErrors } from "../../utils/apiErrors";
 import { formatShortDateTime } from "../../utils/format";
 import "./Attendance.css";
+
+function readQrToken(value) {
+  const url = new URL(value);
+  const match = url.pathname.match(/^\/check-out\/([^/]+)$/);
+  if (!match) throw new Error("This QR code is not an attendance-out code.");
+  return decodeURIComponent(match[1]);
+}
 
 export default function AttendanceOut() {
   const { user } = useAuth();
   const load = useCallback(() => getAttendanceOutData(user), [user]);
-  const { data, loading, reload } = useAsyncData(load);
+  const { data, loading, error: loadError, reload } = useAsyncData(load);
 
-  const [scanConfirmed, setScanConfirmed] = useState(false);
   const [scannerKey, setScannerKey] = useState(0);
   const [scanMessage, setScanMessage] = useState(null);
   const [error, setError] = useState("");
@@ -32,15 +36,14 @@ export default function AttendanceOut() {
   useTopbarBadge(active ? "info" : "neutral", active ? "1 active session" : "No active session");
 
   if (loading) return <LoadingBlock />;
+  if (loadError) return <AsyncError error={loadError} onRetry={reload} />;
 
-  function handleScan(value) {
-    setScanConfirmed(false);
+  async function handleScan(value) {
+    if (submitting) return;
+
     let token;
     try {
-      const path = new URL(value).pathname;
-      const match = path.match(/^\/check-out\/([^/]+)$/);
-      if (!match) throw new Error("This QR code is not an attendance-out code.");
-      token = decodeURIComponent(match[1]);
+      token = readQrToken(value);
     } catch (scanError) {
       setScanMessage({
         tone: "danger",
@@ -53,32 +56,17 @@ export default function AttendanceOut() {
       return;
     }
 
-    const event = getCatalog().find((item) => item.qrOut === token);
-    if (!active || !event || event.id !== active.eventId) {
-      setScanMessage({
-        tone: "danger",
-        text: "This checkout QR does not match your active event.",
-      });
-      setScannerKey((key) => key + 1);
-      return;
-    }
-
-    setScanConfirmed(true);
-    setError("");
-    setScanMessage(null);
-  }
-
-  async function handleSelfieCapture(selfie) {
-    if (!active || !scanConfirmed || !selfie || submitting) return;
     setSubmitting(true);
     setError("");
+    setScanMessage(null);
+
     try {
-      const entry = await checkOut(user, { studentId: active.studentId, selfie });
+      const entry = await checkOut(user, { qrToken: token });
       setReceipt({ entry, student: data.student });
-      reload();
+      await reload();
     } catch (submitError) {
-      const fields = firstErrors(submitError.errors);
-      setError(fields.studentId ?? fields.selfie ?? submitError.message);
+      setError(submitError.message);
+      setScannerKey((key) => key + 1);
     } finally {
       setSubmitting(false);
     }
@@ -86,7 +74,7 @@ export default function AttendanceOut() {
 
   function closeReceipt() {
     setReceipt(null);
-    setScanConfirmed(false);
+    setScannerKey((key) => key + 1);
   }
 
   return (
@@ -94,27 +82,27 @@ export default function AttendanceOut() {
       <PageHeader
         eyebrow="Departure"
         title="Attendance Out"
-        subtitle="Scan the checkout QR, then capture your selfie to submit attendance."
+        subtitle="Scan the matching event QR code to record your departure."
       />
 
-      {!scanConfirmed ? (
-        <Card title="Scan event QR code">
-          <ScannerPreview
-            key={scannerKey}
-            hint="Point your camera at the checkout QR"
-            caption="Camera preview • QR scanner"
-            onScan={handleScan}
-          />
-          {scanMessage && <Notice tone={scanMessage.tone}>{scanMessage.text}</Notice>}
-        </Card>
-      ) : (
-        <Card title="Take event selfie">
-          <p className="attendance__note">{active.eventTitle}</p>
-          <SelfieCapture onCapture={handleSelfieCapture} />
-          {submitting && <Notice tone="info">Submitting attendance...</Notice>}
-          {error && <Notice tone="danger">{error}</Notice>}
-        </Card>
-      )}
+      <Card title="Scan checkout QR code">
+        {active ? (
+          <>
+            <p className="attendance__note">Active event: {active.eventTitle}</p>
+            <ScannerPreview
+              key={scannerKey}
+              hint="Point your camera at the attendance-out QR"
+              caption="Camera preview • QR scanner"
+              onScan={handleScan}
+            />
+          </>
+        ) : (
+          <Notice tone="info">You do not have an active attendance session to check out.</Notice>
+        )}
+        {submitting && <Notice tone="info">Recording attendance out...</Notice>}
+        {scanMessage && <Notice tone={scanMessage.tone}>{scanMessage.text}</Notice>}
+        {error && <Notice tone="danger">{error}</Notice>}
+      </Card>
 
       {receipt && (
         <Modal title="Attendance confirmed" onClose={closeReceipt}>
@@ -132,10 +120,10 @@ export default function AttendanceOut() {
               <strong>Full name:</strong> {receipt.student.name}
             </p>
             <p>
-              <strong>Course:</strong> {receipt.student.course}
+              <strong>Course:</strong> {receipt.student.course || "—"}
             </p>
             <p>
-              <strong>Year level:</strong> {receipt.student.yearLevel}
+              <strong>Year level:</strong> {receipt.student.yearLevel || "—"}
             </p>
             <Button variant="outline" className="btn--block" onClick={closeReceipt}>
               Close

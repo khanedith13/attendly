@@ -84,6 +84,12 @@ Route::middleware([
 Route::middleware(['auth:sanctum', 'active', 'role:organizer'])
     ->prefix('organizer')
     ->group(function () {
+        Route::get('/dashboard', [OrganizerDashboardController::class, 'show']);
+        Route::get('/attendees', [OrganizerRosterController::class, 'attendees']);
+        Route::get('/registrations', [OrganizerRosterController::class, 'registrations']);
+        Route::get('/profile', [OrganizerProfileController::class, 'show']);
+        Route::put('/profile', [OrganizerProfileController::class, 'update']);
+
         Route::get('/events', [OrganizerEventController::class, 'index']);
         Route::post('/events', [OrganizerEventController::class, 'store']);
         Route::get('/events/{event}', [OrganizerEventController::class, 'show']);

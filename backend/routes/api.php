@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PublicSettingsController;
 use Illuminate\Support\Facades\Route;
@@ -10,6 +11,13 @@ use App\Http\Controllers\StudentRegistrationController;
 use App\Http\Controllers\OrganizerDashboardController;
 use App\Http\Controllers\OrganizerRosterController;
 use App\Http\Controllers\OrganizerProfileController;
+use App\Http\Controllers\AdminSettingsController;
+use App\Http\Controllers\AdminAuditLogController;
+use App\Http\Controllers\AdminOrganizerController;
+use App\Http\Controllers\AdminEventController;
+use App\Http\Controllers\AdminAttendanceController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminUserController;
 
 Route::get('/health', function () {
     return response()->json([
@@ -46,6 +54,23 @@ Route::prefix('auth')->group(function () {
     });
 });
 
+Route::middleware(['auth:sanctum', 'active', 'role:admin'])
+    ->prefix('admin')
+    ->group(function () {
+        Route::get('/settings', [AdminSettingsController::class, 'show']);
+        Route::put('/settings', [AdminSettingsController::class, 'update']);
+        Route::get('/audit-logs', [AdminAuditLogController::class, 'index']);
+        Route::get('/users', [AdminUserController::class, 'index']);
+        Route::post('/users', [AdminUserController::class, 'store']);
+        Route::patch('/users/{user}', [AdminUserController::class, 'update']);
+        Route::get('/organizers', [AdminOrganizerController::class, 'index']);
+        Route::patch('/organizers/{user}/status', [AdminOrganizerController::class, 'updateStatus']);
+        Route::get('/events', [AdminEventController::class, 'index']);
+        Route::patch('/events/{event}/review', [AdminEventController::class, 'updateReview']);
+        Route::get('/attendance', [AdminAttendanceController::class, 'index']);
+        Route::get('/dashboard', [AdminDashboardController::class, 'show']);
+    });
+
 Route::middleware([
     'auth:sanctum',
     'active',
@@ -55,6 +80,7 @@ Route::middleware([
     Route::put('/', [AccountController::class, 'update']);
     Route::put('/password', [AccountController::class, 'password']);
 });
+
 Route::middleware(['auth:sanctum', 'active', 'role:organizer'])
     ->prefix('organizer')
     ->group(function () {
@@ -75,23 +101,38 @@ Route::put('/profile', [OrganizerProfileController::class, 'update']);
 Route::middleware(['auth:sanctum', 'active', 'role:student'])
     ->get('/events', [StudentEventController::class, 'index']);
 
-    Route::middleware([
-        'auth:sanctum',
+Route::middleware([
+    'auth:sanctum',
+    'active',
+    'role:student',
+])->prefix('student')->group(function () {
+    Route::get('/registrations', [
+        StudentRegistrationController::class,
+        'index',
+    ]);
+
+    Route::post('/events/{event}/register', [
+        StudentRegistrationController::class,
+        'store',
+    ]);
+
+    Route::delete('/registrations/{registration}', [
+        StudentRegistrationController::class,
+        'destroy',
+    ]);
+
+    Route::get('/attendance/active', [
+        AttendanceController::class,
         'active',
-        'role:student',
-    ])->prefix('student')->group(function () {
-        Route::get('/registrations', [
-            StudentRegistrationController::class,
-            'index',
-        ]);
-    
-        Route::post('/events/{event}/register', [
-            StudentRegistrationController::class,
-            'store',
-        ]);
-    
-        Route::delete('/registrations/{registration}', [
-            StudentRegistrationController::class,
-            'destroy',
-        ]);
-    });
+    ]);
+
+    Route::post('/attendance/check-in', [
+        AttendanceController::class,
+        'checkIn',
+    ]);
+
+    Route::post('/attendance/check-out', [
+        AttendanceController::class,
+        'checkOut',
+    ]);
+});

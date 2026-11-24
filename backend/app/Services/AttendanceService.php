@@ -20,8 +20,8 @@ class AttendanceService
     }
 
     /**
-     * Record the authenticated student's attendance-in using an event QR token
-     * or the approved manual event/email fallback.
+     * Record the authenticated student's attendance-in using an event QR token,
+     * a registration ticket token, or the approved manual event/email fallback.
      */
     public function checkIn(User $user, array $data): Attendance
     {
@@ -29,15 +29,29 @@ class AttendanceService
             // Serialize this student's attendance transitions across events.
             User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
 
-            $eventQuery = Event::query();
-
             if (filled($data['qr_token'] ?? null)) {
-                $eventQuery->where('qr_in_token', $data['qr_token']);
-            } else {
-                $eventQuery->whereKey($data['event_id']);
-            }
+                $event = Event::query()
+                    ->where('qr_in_token', $data['qr_token'])
+                    ->lockForUpdate()
+                    ->first();
 
-            $event = $eventQuery->lockForUpdate()->first();
+                if (! $event) {
+                    $ticket = Registration::query()
+                        ->where('qr_token', $data['qr_token'])
+                        ->where('user_id', $user->id)
+                        ->where('status', 'registered')
+                        ->first();
+
+                    $event = $ticket
+                        ? Event::query()->whereKey($ticket->event_id)->lockForUpdate()->first()
+                        : null;
+                }
+            } else {
+                $event = Event::query()
+                    ->whereKey($data['event_id'])
+                    ->lockForUpdate()
+                    ->first();
+            }
 
             if (! $event) {
                 throw new NotFoundHttpException('Attendance event not found.');

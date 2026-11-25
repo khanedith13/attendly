@@ -37,6 +37,20 @@ Route::middleware('throttle:30,1')->prefix('attendance/guest')->group(function (
     Route::post('/check-out', [GuestAttendanceController::class, 'checkOut']);
 });
 
+Route::prefix('attendance/guest')
+    ->middleware('throttle:10,1')
+    ->group(function () {
+        Route::post('/check-in', [
+            GuestAttendanceController::class,
+            'checkIn',
+        ]);
+
+        Route::post('/check-out', [
+            GuestAttendanceController::class,
+            'checkOut',
+        ]);
+    });
+
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])
         ->middleware('throttle:register');

@@ -61,6 +61,14 @@ export async function getAttendees(user, eventId) {
   return data;
 }
 
+export async function getAttendeeSelfie(registrationId, direction) {
+  const { data } = await api.get(
+    `/organizer/attendees/${registrationId}/selfie/${direction}`,
+    { responseType: "blob" },
+  );
+  return URL.createObjectURL(data);
+}
+
 export async function getRegistrations() {
   const { data } = await api.get("/organizer/registrations");
   return data;

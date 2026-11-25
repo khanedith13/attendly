@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\Registration;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class OrganizerRosterController extends Controller
 {
@@ -24,6 +25,7 @@ class OrganizerRosterController extends Controller
 
         $fallback = $events->first(fn (Event $event): bool => $event->starts_at->lte(now()))
             ?? $events->first();
+
         $event = $events->firstWhere('id', (int) $request->query('event_id')) ?? $fallback;
 
         if (! $event) {
@@ -52,8 +54,8 @@ class OrganizerRosterController extends Controller
                 'status' => $registration->status,
                 'timeIn' => $registration->attendance?->time_in?->toIso8601String(),
                 'timeOut' => $registration->attendance?->time_out?->toIso8601String(),
-                'selfieIn' => null,
-                'selfieOut' => null,
+                'selfieIn' => filled($registration->attendance?->selfie_in_path),
+                'selfieOut' => filled($registration->attendance?->selfie_out_path),
             ]);
 
         return response()->json([
@@ -64,6 +66,37 @@ class OrganizerRosterController extends Controller
             'event' => (new EventResource($event))->resolve($request),
             'rows' => $rows->values(),
         ]);
+    }
+
+    public function selfie(
+        Request $request,
+        Registration $registration,
+        string $direction
+    ) {
+        abort_unless(in_array($direction, ['in', 'out'], true), 404);
+
+        $organizer = $request->user()->organizer
+            ?? abort(403, 'No organizer profile for this account.');
+
+        $registration->loadMissing('event', 'attendance');
+
+        abort_unless(
+            $registration->event->organizer_id === $organizer->id,
+            403
+        );
+
+        $path = $direction === 'in'
+            ? $registration->attendance?->selfie_in_path
+            : $registration->attendance?->selfie_out_path;
+
+        abort_unless(
+            $path && Storage::disk('local')->exists($path),
+            404
+        );
+
+        return response()->file(
+            Storage::disk('local')->path($path)
+        );
     }
 
     public function registrations(Request $request): JsonResponse

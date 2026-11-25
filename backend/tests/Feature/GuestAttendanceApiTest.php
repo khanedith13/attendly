@@ -60,7 +60,7 @@ class GuestAttendanceApiTest extends TestCase
         $response = $this->post('/api/attendance/guest/check-in', [
             ...$this->studentPayload(),
             'qr_token' => $this->event->qr_in_token,
-            'selfie' => UploadedFile::fake()->image('check-in.png'),
+            'selfie' => UploadedFile::fake()->create('check-in.png', 100, 'image/png'),
         ]);
 
         $response
@@ -99,7 +99,7 @@ class GuestAttendanceApiTest extends TestCase
         $response = $this->post('/api/attendance/guest/check-out', [
             ...$this->studentPayload(),
             'qr_token' => $this->event->qr_out_token,
-            'selfie' => UploadedFile::fake()->image('check-out.png'),
+            'selfie' => UploadedFile::fake()->create('check-out.png', 100, 'image/png'),
         ]);
 
         $response
@@ -139,7 +139,7 @@ class GuestAttendanceApiTest extends TestCase
         $this->post('/api/attendance/guest/check-in', [
             ...$payload,
             'qr_token' => $this->event->qr_in_token,
-            'selfie' => UploadedFile::fake()->image('selfie.png'),
+            'selfie' => UploadedFile::fake()->create('selfie.png', 100, 'image/png'),
         ])->assertUnprocessable()->assertJsonValidationErrors('student_id');
 
         $this->assertDatabaseCount('attendances', 0);

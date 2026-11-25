@@ -18,13 +18,8 @@ class CheckOutRequest extends FormRequest
             'qr_token' => ['nullable', 'uuid'],
             'event_id' => ['nullable', 'integer', 'min:1'],
             'email' => ['nullable', 'email', 'max:150'],
+            'selfie' => ['required', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
         ];
-        'selfie' => [
-            'required',
-            'image',
-            'mimes:jpeg,jpg,png,webp',
-            'max:5120',
-        ],
     }
 
     public function after(): array

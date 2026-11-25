@@ -7,14 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable([
-    'registration_id',
-    'time_in',
-    'time_out',
-    'selfie_in_path',
-    'selfie_out_path',
-])]
-
+#[Fillable(['registration_id', 'time_in', 'time_out', 'selfie_in_path', 'selfie_out_path'])]
 class Attendance extends Model
 {
     use HasFactory;

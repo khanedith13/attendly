@@ -8,6 +8,8 @@ use App\Models\Attendance;
 use App\Services\AttendanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class AttendanceController extends Controller
 {
@@ -44,11 +46,6 @@ class AttendanceController extends Controller
             throw $exception;
         }
 
-        $attendance = $this->attendanceService->checkIn(
-            $request->user(),
-            $request->validated(),
-        );
-
         return response()->json([
             'message' => 'Attendance in has been recorded.',
             'attendance' => $this->attendancePayload($attendance),
@@ -58,10 +55,18 @@ class AttendanceController extends Controller
     /** Close the authenticated student's active attendance session. */
     public function checkOut(CheckOutRequest $request): JsonResponse
     {
-        $attendance = $this->attendanceService->checkOut(
-            $request->user(),
-            $request->validated(),
-        );
+        $data = $request->validated();
+        $path = $request->file('selfie')->store('attendance/selfies', 'local');
+
+        try {
+            $attendance = $this->attendanceService->checkOut(
+                $request->user(),
+                [...$data, 'selfie_out_path' => $path],
+            );
+        } catch (Throwable $exception) {
+            Storage::disk('local')->delete($path);
+            throw $exception;
+        }
 
         return response()->json([
             'message' => 'Attendance out has been recorded.',
@@ -80,6 +85,13 @@ class AttendanceController extends Controller
             'event' => [
                 'id' => $event->id,
                 'title' => $event->title,
+            ],
+            'student' => [
+                'studentId' => $registration->user->student_id,
+                'name' => $registration->user->name,
+                'email' => $registration->user->email,
+                'course' => $registration->user->course,
+                'yearLevel' => $registration->user->year_level,
             ],
             'timeIn' => $attendance->time_in?->toIso8601String(),
             'timeOut' => $attendance->time_out?->toIso8601String(),

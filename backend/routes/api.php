@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\GuestAttendanceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PublicSettingsController;
 use Illuminate\Support\Facades\Route;
@@ -91,6 +92,7 @@ Route::middleware(['auth:sanctum', 'active', 'role:organizer'])
     ->group(function () {
         Route::get('/dashboard', [OrganizerDashboardController::class, 'show']);
         Route::get('/attendees', [OrganizerRosterController::class, 'attendees']);
+        Route::get('/attendees/{registration}/selfie/{direction}', [OrganizerRosterController::class, 'selfie']);
         Route::get('/registrations', [OrganizerRosterController::class, 'registrations']);
         Route::get('/profile', [OrganizerProfileController::class, 'show']);
         Route::put('/profile', [OrganizerProfileController::class, 'update']);
@@ -101,11 +103,8 @@ Route::middleware(['auth:sanctum', 'active', 'role:organizer'])
         Route::put('/events/{event}', [OrganizerEventController::class, 'update']);
         Route::post('/events/{event}/publish', [OrganizerEventController::class, 'publish']);
         Route::post('/events/{event}/cancel', [OrganizerEventController::class, 'cancel']);
-        Route::get(
-            '/attendees/{registration}/selfie/{direction}',
-            [OrganizerRosterController::class, 'selfie']
-        );
     });
+
 
 Route::middleware(['auth:sanctum', 'active', 'role:student'])
     ->get('/events', [StudentEventController::class, 'index']);

@@ -1,3 +1,4 @@
+
 import api from "../api/axios";
 import { getAccount } from "./accountService";
 
@@ -8,18 +9,14 @@ export async function listEvents() {
 
 export async function registerForEvent(user, eventId) {
   void user;
-  const { data } = await api.post(
-    `/student/events/${eventId}/register`,
-  );
+  const { data } = await api.post(`/student/events/${eventId}/register`);
 
   return data.registration;
 }
 
 export async function cancelRegistration(user, registrationId) {
   void user;
-  const { data } = await api.delete(
-    `/student/registrations/${registrationId}`,
-  );
+  const { data } = await api.delete(`/student/registrations/${registrationId}`);
 
   return data.registration;
 }
@@ -42,18 +39,33 @@ function studentProfile(user, account) {
   };
 }
 
-function mapActiveSession(attendance, student) {
-  if (!attendance) return null;
-
+function mapAttendance(attendance) {
   return {
     id: attendance.id,
     eventId: attendance.event.id,
     eventTitle: attendance.event.title,
-    studentId: student.studentId,
-    checkedInAt: attendance.timeIn,
-    checkedOutAt: attendance.timeOut,
-    attendance: attendance.status,
+    timeIn: attendance.timeIn,
+    timeOut: attendance.timeOut,
+    time: attendance.timeIn ?? attendance.timeOut,
+    status: attendance.status,
+    student: attendance.student,
   };
+}
+
+function createAttendanceForm({ qrToken, selfie, student }) {
+  const form = new FormData();
+  form.append("qr_token", qrToken);
+  form.append("selfie", selfie);
+
+  if (student) {
+    form.append("student_id", student.studentId);
+    form.append("name", student.name);
+    form.append("email", student.email);
+    form.append("course", student.course);
+    form.append("year_level", student.yearLevel);
+  }
+
+  return form;
 }
 
 export async function getAttendanceInData(user) {
@@ -68,42 +80,62 @@ export async function getAttendanceOutData(user) {
     getAccount(),
   ]);
   const student = studentProfile(user, account);
+  const active = activeResponse.data.activeSession;
 
   return {
-    activeSession: mapActiveSession(activeResponse.data.activeSession, student),
+    activeSession: active
+      ? {
+          id: active.id,
+          eventId: active.event.id,
+          eventTitle: active.event.title,
+          studentId: student.studentId,
+          checkedInAt: active.timeIn,
+          checkedOutAt: active.timeOut,
+          attendance: active.status,
+        }
+      : null,
     student,
   };
 }
 
-export async function checkIn(user, { qrToken }) {
+export async function checkIn(user, { qrToken, selfie }) {
   void user;
-  const { data } = await api.post("/student/attendance/check-in", {
-    qr_token: qrToken,
-  });
-  const attendance = data.attendance;
+  const { data } = await api.post(
+    "/student/attendance/check-in",
+    createAttendanceForm({ qrToken, selfie }),
+    { headers: { "Content-Type": "multipart/form-data" } },
+  );
 
-  return {
-    id: attendance.id,
-    eventId: attendance.event.id,
-    eventTitle: attendance.event.title,
-    checkedInAt: attendance.timeIn,
-    attendance: attendance.status,
-  };
+  return mapAttendance(data.attendance);
 }
 
-export async function checkOut(user, { qrToken }) {
+export async function checkOut(user, { qrToken, selfie }) {
   void user;
-  const { data } = await api.post("/student/attendance/check-out", {
-    qr_token: qrToken,
-  });
-  const attendance = data.attendance;
+  const { data } = await api.post(
+    "/student/attendance/check-out",
+    createAttendanceForm({ qrToken, selfie }),
+    { headers: { "Content-Type": "multipart/form-data" } },
+  );
 
-  return {
-    id: attendance.id,
-    eventId: attendance.event.id,
-    event: attendance.event.title,
-    timeIn: attendance.timeIn,
-    timeOut: attendance.timeOut,
-    attendance: attendance.status,
-  };
+  return mapAttendance(data.attendance);
+}
+
+export async function guestCheckIn({ qrToken, selfie, student }) {
+  const { data } = await api.post(
+    "/attendance/guest/check-in",
+    createAttendanceForm({ qrToken, selfie, student }),
+    { headers: { "Content-Type": "multipart/form-data" } },
+  );
+
+  return mapAttendance(data.attendance);
+}
+
+export async function guestCheckOut({ qrToken, selfie, student }) {
+  const { data } = await api.post(
+    "/attendance/guest/check-out",
+    createAttendanceForm({ qrToken, selfie, student }),
+    { headers: { "Content-Type": "multipart/form-data" } },
+  );
+
+  return mapAttendance(data.attendance);
 }

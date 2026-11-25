@@ -91,7 +91,7 @@ class GuestAttendanceApiTest extends TestCase
         $checkInResponse = $this->post('/api/attendance/guest/check-in', [
             ...$this->studentPayload(),
             'qr_token' => $this->event->qr_in_token,
-            'selfie' => UploadedFile::fake()->image('check-in.png'),
+            'selfie' => UploadedFile::fake()->create('check-in.png', 100, 'image/png'),
         ])->assertCreated();
 
         Carbon::setTestNow($this->testNow->copy()->addMinutes(45));
@@ -154,7 +154,7 @@ class GuestAttendanceApiTest extends TestCase
         $this->post('/api/attendance/guest/check-in', [
             ...$this->studentPayload($unregisteredStudent),
             'qr_token' => $this->event->qr_in_token,
-            'selfie' => UploadedFile::fake()->image('selfie.png'),
+            'selfie' => UploadedFile::fake()->create('selfie.png', 100, 'image/png'),
         ])->assertNotFound();
 
         $this->assertDatabaseCount('attendances', 0);
@@ -165,7 +165,7 @@ class GuestAttendanceApiTest extends TestCase
         $this->post('/api/attendance/guest/check-in', [
             ...$this->studentPayload(),
             'qr_token' => (string) Str::uuid(),
-            'selfie' => UploadedFile::fake()->image('selfie.png'),
+            'selfie' => UploadedFile::fake()->create('selfie.png', 100, 'image/png'),
         ])->assertNotFound();
 
         $this->assertDatabaseCount('attendances', 0);
@@ -176,7 +176,7 @@ class GuestAttendanceApiTest extends TestCase
         $this->post('/api/attendance/guest/check-in', [
             ...$this->studentPayload(),
             'qr_token' => 'not-a-uuid',
-            'selfie' => UploadedFile::fake()->image('selfie.png'),
+            'selfie' => UploadedFile::fake()->create('selfie.png', 100, 'image/png'),
         ])->assertUnprocessable()->assertJsonValidationErrors('qr_token');
 
         $this->assertDatabaseCount('attendances', 0);
@@ -212,13 +212,13 @@ class GuestAttendanceApiTest extends TestCase
         $this->post('/api/attendance/guest/check-in', [
             ...$this->studentPayload(),
             'qr_token' => $this->event->qr_in_token,
-            'selfie' => UploadedFile::fake()->image('selfie.png'),
+            'selfie' => UploadedFile::fake()->create('selfie.png', 100, 'image/png'),
         ])->assertCreated();
 
         $this->post('/api/attendance/guest/check-in', [
             ...$this->studentPayload(),
             'qr_token' => $this->event->qr_in_token,
-            'selfie' => UploadedFile::fake()->image('duplicate.png'),
+            'selfie' => UploadedFile::fake()->create('duplicate.png', 100, 'image/png'),
         ])->assertStatus(409);
 
         $this->assertDatabaseCount('attendances', 1);
@@ -233,7 +233,7 @@ class GuestAttendanceApiTest extends TestCase
         $this->post('/api/attendance/guest/check-out', [
             ...$this->studentPayload(),
             'qr_token' => $this->event->qr_out_token,
-            'selfie' => UploadedFile::fake()->image('selfie.png'),
+            'selfie' => UploadedFile::fake()->create('selfie.png', 100, 'image/png'),
         ])->assertStatus(409);
 
         $this->assertDatabaseCount('attendances', 0);

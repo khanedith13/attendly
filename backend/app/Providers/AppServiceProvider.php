@@ -45,5 +45,16 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('reset-password', function (Request $request) {
             return Limit::perMinute(5)->by($request->ip());
         });
+
+        // Many students share one school network at an event, so the IP limit is
+        // generous and the tight limit applies per student ID on that IP.
+        RateLimiter::for('guest-attendance', function (Request $request) {
+            $studentId = Str::lower(trim((string) $request->input('student_id')));
+
+            return [
+                Limit::perMinute(300)->by('ip:'.$request->ip()),
+                Limit::perMinute(10)->by('student:'.$studentId.'|'.$request->ip()),
+            ];
+        });
     }
 }

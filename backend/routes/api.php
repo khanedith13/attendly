@@ -34,7 +34,7 @@ Route::get('/settings/public', [
 ]);
 
 Route::prefix('attendance/guest')
-    ->middleware('throttle:10,1')
+    ->middleware('throttle:guest-attendance')
     ->group(function () {
         Route::post('/check-in', [
             GuestAttendanceController::class,
@@ -52,7 +52,7 @@ Route::get('/attendance/selfies/{attendance}/{direction}', [
     'show',
 ])
     ->whereIn('direction', ['in', 'out'])
-    ->middleware(['signed', 'throttle:60,1'])
+    ->middleware('signed')
     ->name('attendance.selfie');
 
 Route::prefix('auth')->group(function () {

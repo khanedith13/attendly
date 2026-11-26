@@ -1,4 +1,3 @@
-
 import api from "../api/axios";
 import { getAccount } from "./accountService";
 
@@ -49,6 +48,8 @@ function mapAttendance(attendance) {
     time: attendance.timeIn ?? attendance.timeOut,
     status: attendance.status,
     student: attendance.student,
+    selfieInUrl: attendance.selfieInUrl ?? null,
+    selfieOutUrl: attendance.selfieOutUrl ?? null,
   };
 }
 

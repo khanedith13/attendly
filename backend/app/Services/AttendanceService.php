@@ -61,17 +61,7 @@ class AttendanceService
                 $this->assertManualIdentity($user, $data['email'] ?? null, $event);
             }
 
-            if ($event->status !== 'published' || $event->review_status !== 'approved') {
-                throw new NotFoundHttpException('Attendance event not found.');
-            }
-
-            $now = now();
-
-            if ($now->lt($event->starts_at) || $now->gt($event->ends_at)) {
-                throw new ConflictHttpException(
-                    'Attendance is available only during the event schedule.'
-                );
-            }
+            $this->assertEventAvailable($event);
 
             $registration = Registration::query()
                 ->where('user_id', $user->id)
@@ -86,47 +76,12 @@ class AttendanceService
                 );
             }
 
-            $activeSession = Attendance::query()
-                ->whereNotNull('time_in')
-                ->whereNull('time_out')
-                ->whereHas('registration', fn ($query) => $query
-                    ->where('user_id', $user->id)
-                    ->where('status', 'registered'))
-                ->lockForUpdate()
-                ->first();
-
-            if ($activeSession) {
-                throw new ConflictHttpException(
-                    'You already have an active attendance session. Check out first.'
-                );
-            }
-
-            $attendance = $registration->attendance()
-                ->lockForUpdate()
-                ->first();
-
-            if ($attendance?->time_in !== null) {
-                throw new ConflictHttpException(
-                    'Attendance in has already been recorded for this registration.'
-                );
-            }
-
-            $graceMinutes = $this->settings->int('late_grace_minutes', 15);
-            $lateAfter = $event->starts_at->copy()->addMinutes($graceMinutes);
-
-            if (! $attendance) {
-                $attendance = new Attendance([
-                    'registration_id' => $registration->id,
-                ]);
-            }
-
-            $attendance->forceFill([
-                'time_in' => $now,
-                'time_out' => null,
-                'attendance_status' => $now->gt($lateAfter) ? 'late' : 'present',
-            ])->save();
-
-            return $attendance->fresh(['registration.event']);
+            return $this->recordCheckIn(
+                $user,
+                $event,
+                $registration,
+                $data['selfie_in_path'] ?? null,
+            );
         }, 3);
     }
 
@@ -278,21 +233,10 @@ class AttendanceService
                 );
             }
 
-            $attendance = $registration->attendance()
-                ->lockForUpdate()
-                ->first();
-
-            if (! $attendance || $attendance->time_in === null || $attendance->time_out !== null) {
-                throw new ConflictHttpException(
-                    'There is no active attendance session for this event.'
-                );
-            }
-
-            $attendance->forceFill([
-                'time_out' => now(),
-            ])->save();
-
-            return $attendance->fresh(['registration.event']);
+            return $this->recordCheckOut(
+                $registration,
+                $data['selfie_out_path'] ?? null,
+            );
         }, 3);
     }
 

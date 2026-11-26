@@ -47,13 +47,13 @@ Route::prefix('attendance/guest')
         ]);
     });
 
-    Route::get('/attendance/selfies/{attendance}/{direction}', [
-        AttendanceSelfieController::class,
-        'show',
-    ])
-        ->whereIn('direction', ['in', 'out'])
-        ->middleware(['signed', 'throttle:60,1'])
-        ->name('attendance.selfie');
+Route::get('/attendance/selfies/{attendance}/{direction}', [
+    AttendanceSelfieController::class,
+    'show',
+])
+    ->whereIn('direction', ['in', 'out'])
+    ->middleware(['signed', 'throttle:60,1'])
+    ->name('attendance.selfie');
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])

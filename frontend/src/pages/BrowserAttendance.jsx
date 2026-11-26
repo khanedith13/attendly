@@ -101,11 +101,12 @@ export default function BrowserAttendance({ direction }) {
 
       setReceipt({
         event: result.eventTitle,
-        time: direction === "in" ? result.timeIn : result.timeOut,
-        direction,
+        timeIn: result.timeIn,
+        timeOut: result.timeOut,
         student: result.student ?? student,
-        selfie,
         status: result.status,
+        selfieInUrl: result.selfieInUrl,
+        selfieOutUrl: result.selfieOutUrl,
       });
     } catch (submitError) {
       setError(submitError.message);
@@ -216,18 +217,30 @@ export default function BrowserAttendance({ direction }) {
           <div className="attendance__form">
             <p><strong>Event:</strong> {receipt.event}</p>
             <p><strong>Attendance:</strong> {directionLabel}</p>
-            <p><strong>Date and time:</strong> {formatShortDateTime(receipt.time)}</p>
+            <p><strong>Attendance in:</strong> {formatShortDateTime(receipt.timeIn)}</p>
+            {receipt.timeOut && (
+              <p><strong>Attendance out:</strong> {formatShortDateTime(receipt.timeOut)}</p>
+            )}
             <p><strong>Student ID:</strong> {receipt.student.studentId}</p>
             <p><strong>Full name:</strong> {receipt.student.name}</p>
             <p><strong>School email:</strong> {receipt.student.email}</p>
             <p><strong>Course:</strong> {receipt.student.course || "—"}</p>
             <p><strong>Year level:</strong> {receipt.student.yearLevel || "—"}</p>
             <p><strong>Status:</strong> {receipt.status}</p>
-            <img
-              src={receipt.selfie}
-              alt="Attendance selfie receipt"
-              style={{ width: "100%", maxWidth: 320, borderRadius: 12, alignSelf: "center" }}
-            />
+            {receipt.selfieInUrl && (
+              <img
+                src={receipt.selfieInUrl}
+                alt="Attendance in selfie"
+                style={{ width: "100%", maxWidth: 320, borderRadius: 12, alignSelf: "center" }}
+              />
+            )}
+            {receipt.selfieOutUrl && (
+              <img
+                src={receipt.selfieOutUrl}
+                alt="Attendance out selfie"
+                style={{ width: "100%", maxWidth: 320, borderRadius: 12, alignSelf: "center" }}
+              />
+            )}
             <Button variant="outline" className="btn--block" onClick={() => setReceipt(null)}>
               Close receipt
             </Button>

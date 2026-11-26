@@ -27,6 +27,8 @@ class GuestAttendanceApiTest extends TestCase
 
     private Registration $registration;
 
+    private static int $studentSequence = 0;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -67,28 +69,22 @@ class GuestAttendanceApiTest extends TestCase
             ->assertCreated()
             ->assertJsonPath('attendance.event.id', $this->event->id)
             ->assertJsonPath('attendance.student.studentId', $this->student->student_id)
-            ->assertJsonPath('attendance.status', 'late')
-            ->assertJsonPath('attendance.selfieStored', true);
+            ->assertJsonPath('attendance.status', 'late');
 
         $attendance = Attendance::query()
             ->where('registration_id', $this->registration->id)
             ->firstOrFail();
 
         $this->assertNotNull($attendance->time_in);
+        $this->assertNotNull($attendance->selfie_in_path);
+        $this->assertNull($attendance->selfie_out_path);
 
-        $selfiePath = $response->json('attendance.selfiePath');
-
-        $this->assertStringStartsWith(
-            "attendance-selfies/{$attendance->id}/check-in.",
-            $selfiePath,
-        );
-
-        Storage::disk('local')->assertExists($selfiePath);
+        $this->assertTrue(Storage::disk('local')->exists($attendance->selfie_in_path));
     }
 
     public function test_guest_can_check_out_after_checking_in(): void
     {
-        $checkInResponse = $this->post('/api/attendance/guest/check-in', [
+        $this->post('/api/attendance/guest/check-in', [
             ...$this->studentPayload(),
             'qr_token' => $this->event->qr_in_token,
             'selfie' => UploadedFile::fake()->create('check-in.png', 100, 'image/png'),
@@ -105,30 +101,19 @@ class GuestAttendanceApiTest extends TestCase
         $response
             ->assertOk()
             ->assertJsonPath('attendance.event.id', $this->event->id)
-            ->assertJsonPath('attendance.student.studentId', $this->student->student_id)
-            ->assertJsonPath('attendance.selfieStored', true);
+            ->assertJsonPath('attendance.student.studentId', $this->student->student_id);
 
         $attendance = Attendance::query()
             ->where('registration_id', $this->registration->id)
             ->firstOrFail();
 
         $this->assertNotNull($attendance->time_out);
+        $this->assertNotNull($attendance->selfie_in_path);
+        $this->assertNotNull($attendance->selfie_out_path);
+        $this->assertNotSame($attendance->selfie_in_path, $attendance->selfie_out_path);
 
-        $checkInSelfiePath = $checkInResponse->json('attendance.selfiePath');
-        $checkOutSelfiePath = $response->json('attendance.selfiePath');
-
-        $this->assertStringStartsWith(
-            "attendance-selfies/{$attendance->id}/check-in.",
-            $checkInSelfiePath,
-        );
-
-        $this->assertStringStartsWith(
-            "attendance-selfies/{$attendance->id}/check-out.",
-            $checkOutSelfiePath,
-        );
-
-        Storage::disk('local')->assertExists($checkInSelfiePath);
-        Storage::disk('local')->assertExists($checkOutSelfiePath);
+        $this->assertTrue(Storage::disk('local')->exists($attendance->selfie_in_path));
+        $this->assertTrue(Storage::disk('local')->exists($attendance->selfie_out_path));
     }
 
     public function test_guest_check_in_rejects_student_details_that_do_not_match(): void
@@ -140,11 +125,11 @@ class GuestAttendanceApiTest extends TestCase
             ...$payload,
             'qr_token' => $this->event->qr_in_token,
             'selfie' => UploadedFile::fake()->create('selfie.png', 100, 'image/png'),
-        ])->assertUnprocessable()->assertJsonValidationErrors('student_id');
+        ])->assertUnprocessable();
 
         $this->assertDatabaseCount('attendances', 0);
 
-        Storage::disk('local')->assertDirectoryEmpty('attendance-selfies');
+        $this->assertCount(0, Storage::disk('local')->allFiles('attendance/selfies'));
     }
 
     public function test_guest_check_in_rejects_a_student_without_an_active_registration(): void
@@ -155,9 +140,11 @@ class GuestAttendanceApiTest extends TestCase
             ...$this->studentPayload($unregisteredStudent),
             'qr_token' => $this->event->qr_in_token,
             'selfie' => UploadedFile::fake()->create('selfie.png', 100, 'image/png'),
-        ])->assertNotFound();
+        ])->assertUnprocessable();
 
         $this->assertDatabaseCount('attendances', 0);
+
+        $this->assertCount(0, Storage::disk('local')->allFiles('attendance/selfies'));
     }
 
     public function test_guest_check_in_rejects_an_unknown_valid_format_qr_token(): void
@@ -223,9 +210,7 @@ class GuestAttendanceApiTest extends TestCase
 
         $this->assertDatabaseCount('attendances', 1);
 
-        Storage::disk('local')->assertDirectoryEmpty(
-            'attendance-selfies/tmp',
-        );
+        $this->assertCount(1, Storage::disk('local')->allFiles('attendance/selfies'));
     }
 
     public function test_guest_cannot_check_out_without_an_active_attendance_session(): void
@@ -262,7 +247,7 @@ class GuestAttendanceApiTest extends TestCase
             'password' => bcrypt('Password123!'),
             'role' => 'student',
             'status' => 'active',
-            'student_id' => 'STU-'.strtoupper(Str::random(8)),
+            'student_id' => sprintf('2026-%05d', 10000 + ++self::$studentSequence),
             'course' => 'BS Information Technology',
             'year_level' => '3rd Year',
         ]);

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CheckInRequest;
 use App\Http\Requests\CheckOutRequest;
-use App\Models\Attendance;
+use App\Http\Resources\AttendanceReceiptResource;
 use App\Services\AttendanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,7 +25,7 @@ class AttendanceController extends Controller
 
         return response()->json([
             'activeSession' => $attendance
-                ? $this->attendancePayload($attendance)
+                ? (new AttendanceReceiptResource($attendance))->resolve()
                 : null,
         ]);
     }
@@ -48,7 +48,7 @@ class AttendanceController extends Controller
 
         return response()->json([
             'message' => 'Attendance in has been recorded.',
-            'attendance' => $this->attendancePayload($attendance),
+            'attendance' => (new AttendanceReceiptResource($attendance))->resolve(),
         ], 201);
     }
 
@@ -70,32 +70,7 @@ class AttendanceController extends Controller
 
         return response()->json([
             'message' => 'Attendance out has been recorded.',
-            'attendance' => $this->attendancePayload($attendance),
+            'attendance' => (new AttendanceReceiptResource($attendance))->resolve(),
         ]);
-    }
-
-    /** Convert an attendance record to the public API response shape. */
-    private function attendancePayload(Attendance $attendance): array
-    {
-        $registration = $attendance->registration;
-        $event = $registration->event;
-
-        return [
-            'id' => $attendance->id,
-            'event' => [
-                'id' => $event->id,
-                'title' => $event->title,
-            ],
-            'student' => [
-                'studentId' => $registration->user->student_id,
-                'name' => $registration->user->name,
-                'email' => $registration->user->email,
-                'course' => $registration->user->course,
-                'yearLevel' => $registration->user->year_level,
-            ],
-            'timeIn' => $attendance->time_in?->toIso8601String(),
-            'timeOut' => $attendance->time_out?->toIso8601String(),
-            'status' => $attendance->attendance_status,
-        ];
     }
 }

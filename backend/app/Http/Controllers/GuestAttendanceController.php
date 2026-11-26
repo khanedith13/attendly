@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\GuestCheckInRequest;
 use App\Http\Requests\GuestCheckOutRequest;
-use App\Models\Attendance;
+use App\Http\Resources\AttendanceReceiptResource;
 use App\Services\AttendanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
@@ -34,7 +34,7 @@ class GuestAttendanceController extends Controller
 
         return response()->json([
             'message' => 'Guest attendance in has been recorded.',
-            'attendance' => $this->attendancePayload($attendance),
+            'attendance' => (new AttendanceReceiptResource($attendance))->resolve(),
         ], 201);
     }
 
@@ -55,32 +55,7 @@ class GuestAttendanceController extends Controller
 
         return response()->json([
             'message' => 'Guest attendance out has been recorded.',
-            'attendance' => $this->attendancePayload($attendance),
+            'attendance' => (new AttendanceReceiptResource($attendance))->resolve(),
         ]);
-    }
-
-    private function attendancePayload(Attendance $attendance): array
-    {
-        $registration = $attendance->registration;
-        $student = $registration->user;
-        $event = $registration->event;
-
-        return [
-            'id' => $attendance->id,
-            'event' => [
-                'id' => $event->id,
-                'title' => $event->title,
-            ],
-            'student' => [
-                'studentId' => $student->student_id,
-                'name' => $student->name,
-                'email' => $student->email,
-                'course' => $student->course,
-                'yearLevel' => $student->year_level,
-            ],
-            'timeIn' => $attendance->time_in?->toIso8601String(),
-            'timeOut' => $attendance->time_out?->toIso8601String(),
-            'status' => $attendance->attendance_status,
-        ];
     }
 }

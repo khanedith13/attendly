@@ -61,17 +61,7 @@ class AttendanceService
                 $this->assertManualIdentity($user, $data['email'] ?? null, $event);
             }
 
-            if ($event->status !== 'published' || $event->review_status !== 'approved') {
-                throw new NotFoundHttpException('Attendance event not found.');
-            }
-
-            $now = now();
-
-            if ($now->lt($event->starts_at) || $now->gt($event->ends_at)) {
-                throw new ConflictHttpException(
-                    'Attendance is available only during the event schedule.'
-                );
-            }
+            $this->assertEventAvailable($event);
 
             $registration = Registration::query()
                 ->where('user_id', $user->id)
@@ -86,47 +76,12 @@ class AttendanceService
                 );
             }
 
-            $activeSession = Attendance::query()
-                ->whereNotNull('time_in')
-                ->whereNull('time_out')
-                ->whereHas('registration', fn ($query) => $query
-                    ->where('user_id', $user->id)
-                    ->where('status', 'registered'))
-                ->lockForUpdate()
-                ->first();
-
-            if ($activeSession) {
-                throw new ConflictHttpException(
-                    'You already have an active attendance session. Check out first.'
-                );
-            }
-
-            $attendance = $registration->attendance()
-                ->lockForUpdate()
-                ->first();
-
-            if ($attendance?->time_in !== null) {
-                throw new ConflictHttpException(
-                    'Attendance in has already been recorded for this registration.'
-                );
-            }
-
-            $graceMinutes = $this->settings->int('late_grace_minutes', 15);
-            $lateAfter = $event->starts_at->copy()->addMinutes($graceMinutes);
-
-            if (! $attendance) {
-                $attendance = new Attendance([
-                    'registration_id' => $registration->id,
-                ]);
-            }
-
-            $attendance->forceFill([
-                'time_in' => $now,
-                'time_out' => null,
-                'attendance_status' => $now->gt($lateAfter) ? 'late' : 'present',
-            ])->save();
-
-            return $attendance->fresh(['registration.event']);
+            return $this->recordCheckIn(
+                $user,
+                $event,
+                $registration,
+                $data['selfie_in_path'] ?? null,
+            );
         }, 3);
     }
 
@@ -185,11 +140,11 @@ class AttendanceService
             $event = Event::query()
                 ->where('qr_out_token', $data['qr_token'])
                 ->first();
-    
+
             if (! $event) {
                 throw new NotFoundHttpException('Attendance-out event not found.');
             }
-    
+
             $registration = $this->findGuestRegistration($event, $data);
             $user = User::query()->whereKey($registration->user_id)->lockForUpdate()->firstOrFail();
             $event = Event::query()
@@ -197,23 +152,24 @@ class AttendanceService
                 ->where('qr_out_token', $data['qr_token'])
                 ->lockForUpdate()
                 ->first();
-    
+
             if (! $event) {
                 throw new NotFoundHttpException('Attendance-out event not found.');
             }
-    
+
             $registration = Registration::query()
                 ->whereKey($registration->id)
                 ->where('status', 'registered')
                 ->lockForUpdate()
                 ->first();
-    
+
             if (! $registration) {
                 throw new ConflictHttpException('No active registration was found for this event.');
             }
-    
+
+            $this->assertEventApproved($event);
             $this->assertGuestIdentity($user, $data, $event);
-    
+
             return $this->recordCheckOut(
                 $registration,
                 $data['selfie_out_path'] ?? null,
@@ -266,6 +222,8 @@ class AttendanceService
                 $this->assertManualIdentity($user, $data['email'] ?? null, $event);
             }
 
+            $this->assertEventApproved($event);
+
             $registration = Registration::query()
                 ->where('user_id', $user->id)
                 ->where('event_id', $event->id)
@@ -278,21 +236,10 @@ class AttendanceService
                 );
             }
 
-            $attendance = $registration->attendance()
-                ->lockForUpdate()
-                ->first();
-
-            if (! $attendance || $attendance->time_in === null || $attendance->time_out !== null) {
-                throw new ConflictHttpException(
-                    'There is no active attendance session for this event.'
-                );
-            }
-
-            $attendance->forceFill([
-                'time_out' => now(),
-            ])->save();
-
-            return $attendance->fresh(['registration.event']);
+            return $this->recordCheckOut(
+                $registration,
+                $data['selfie_out_path'] ?? null,
+            );
         }, 3);
     }
 
@@ -310,36 +257,36 @@ class AttendanceService
                 ->where('status', 'registered'))
             ->lockForUpdate()
             ->first();
-    
+
         if ($activeSession) {
             throw new ConflictHttpException(
                 'You already have an active attendance session. Check out first.'
             );
         }
-    
+
         $attendance = $registration->attendance()->lockForUpdate()->first();
-    
+
         if ($attendance?->time_in !== null) {
             throw new ConflictHttpException(
                 'Attendance in has already been recorded for this registration.'
             );
         }
-    
+
         $now = now();
         $graceMinutes = $this->settings->int('late_grace_minutes', 15);
         $lateAfter = $event->starts_at->copy()->addMinutes($graceMinutes);
-    
+
         if (! $attendance) {
             $attendance = new Attendance(['registration_id' => $registration->id]);
         }
-    
+
         $attendance->forceFill([
             'time_in' => $now,
             'time_out' => null,
             'attendance_status' => $now->gt($lateAfter) ? 'late' : 'present',
             'selfie_in_path' => $selfiePath,
         ])->save();
-    
+
         return $attendance->fresh(['registration.event', 'registration.user']);
     }
 
@@ -348,18 +295,18 @@ class AttendanceService
         ?string $selfiePath,
     ): Attendance {
         $attendance = $registration->attendance()->lockForUpdate()->first();
-    
+
         if (! $attendance || $attendance->time_in === null || $attendance->time_out !== null) {
             throw new ConflictHttpException(
                 'There is no active attendance session for this event.'
             );
         }
-    
+
         $attendance->forceFill([
             'time_out' => now(),
             'selfie_out_path' => $selfiePath,
         ])->save();
-    
+
         return $attendance->fresh(['registration.event', 'registration.user']);
     }
 
@@ -369,7 +316,7 @@ class AttendanceService
         $email = Str::lower(trim($data['email']));
         $course = Str::lower(trim($data['course']));
         $yearLevel = Str::lower(trim($data['year_level']));
-    
+
         $registration = Registration::query()
             ->with('user')
             ->where('event_id', $event->id)
@@ -383,13 +330,13 @@ class AttendanceService
                     ->whereRaw('LOWER(TRIM(year_level)) = ?', [$yearLevel]);
             })
             ->first();
-    
+
         if (! $registration) {
             throw new UnprocessableEntityHttpException(
                 'The student details do not match an active registration for this event.'
             );
         }
-    
+
         return $registration;
     }
 
@@ -402,21 +349,26 @@ class AttendanceService
             hash_equals(Str::lower(trim((string) $user->course)), Str::lower(trim($data['course']))),
             hash_equals(Str::lower(trim((string) $user->year_level)), Str::lower(trim($data['year_level']))),
         ];
-    
+
         if (in_array(false, $matches, true)) {
             throw new UnprocessableEntityHttpException(
                 'The student details do not match the registered student profile.'
             );
         }
-    
+
         $this->assertSchoolEmail($user->email, $event);
+    }
+
+    private function assertEventApproved(Event $event): void
+    {
+        if ($event->status !== 'published' || $event->review_status !== 'approved') {
+            throw new NotFoundHttpException('Attendance event not found.');
+        }
     }
 
     private function assertEventAvailable(Event $event): void
     {
-        if ($event->status !== 'published' || $event->review_status !== 'approved') {
-            throw new NotFoundHttpException('Attendance-in event not found.');
-        }
+        $this->assertEventApproved($event);
 
         $now = now();
 

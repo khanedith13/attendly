@@ -21,7 +21,14 @@ export function useAsyncData(fetcher) {
     };
   }, [fetcher, version]);
 
-  const reload = useCallback(() => setVersion((v) => v + 1), []);
+  const reload = useCallback(() => {
+    setState((current) => ({
+      ...current,
+      loading: current.data === null,
+      error: null,
+    }));
+    setVersion((v) => v + 1);
+  }, []);
 
   return { ...state, reload };
 }

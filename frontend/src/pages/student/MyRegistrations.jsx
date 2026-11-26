@@ -26,7 +26,7 @@ import { coverTone } from "../../config/events";
 const filters = [
   { value: "all", label: "All" },
   { value: "upcoming", label: "Upcoming" },
-  { value: "attended", label: "Attended" },
+  { value: "past", label: "Past" },
   { value: "cancelled", label: "Cancelled" },
 ];
 
@@ -35,7 +35,7 @@ const attendanceLabel = { present: "Present", late: "Late", absent: "Absent" };
 
 const pastColumns = [
   { key: "event", header: "Event", bold: true },
-  { key: "date", header: "Date", render: (row) => formatDate(row.timeIn) },
+  { key: "date", header: "Date", render: (row) => formatDate(row.startsAt) },
   {
     key: "registered",
     header: "Registered on",
@@ -103,7 +103,7 @@ export default function MyRegistrations() {
   const { counts, upcoming, cancelled, past } = data;
   const showUpcoming = filter === "all" || filter === "upcoming";
   const showCancelled = filter === "all" || filter === "cancelled";
-  const showPast = filter === "all" || filter === "attended";
+  const showPast = filter === "all" || filter === "past";
   const nothingToShow =
     (!showUpcoming || upcoming.length === 0) &&
     (!showCancelled || cancelled.length === 0) &&

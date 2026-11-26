@@ -122,6 +122,7 @@ class AttendanceService
             }
 
             $this->assertEventAvailable($event);
+            $this->assertEventApproved($event);
             $this->assertGuestIdentity($user, $data, $event);
 
             return $this->recordCheckIn(
@@ -221,6 +222,7 @@ class AttendanceService
                 $this->assertManualIdentity($user, $data['email'] ?? null, $event);
             }
 
+            $this->assertEventApproved($event);
             $registration = Registration::query()
                 ->where('user_id', $user->id)
                 ->where('event_id', $event->id)
@@ -356,11 +358,16 @@ class AttendanceService
         $this->assertSchoolEmail($user->email, $event);
     }
 
-    private function assertEventAvailable(Event $event): void
+    private function assertEventApproved(Event $event): void
     {
         if ($event->status !== 'published' || $event->review_status !== 'approved') {
-            throw new NotFoundHttpException('Attendance-in event not found.');
+            throw new NotFoundHttpException('Attendance event not found.');
         }
+    }
+
+    private function assertEventAvailable(Event $event): void
+    {
+        $this->assertEventApproved($event);
 
         $now = now();
 

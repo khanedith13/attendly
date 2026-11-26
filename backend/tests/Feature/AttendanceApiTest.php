@@ -383,4 +383,33 @@ class AttendanceApiTest extends TestCase
             'registered_at' => now(),
         ]);
     }
+
+    public function test_registered_student_can_check_in_with_their_personal_ticket_qr_token(): void
+    {
+        Sanctum::actingAs($this->student);
+
+        $this->postJson('/api/student/attendance/check-in', [
+            'qr_token' => $this->registration->qr_token,
+        ])
+            ->assertCreated()
+            ->assertJsonPath('attendance.event.id', $this->event->id);
+
+        $this->assertDatabaseHas('attendances', [
+            'registration_id' => $this->registration->id,
+        ]);
+    }
+
+    public function test_student_cannot_use_another_students_personal_ticket_qr_token(): void
+    {
+        $otherStudent = $this->createStudent();
+        $otherRegistration = $this->createRegistration($otherStudent, $this->event);
+
+        Sanctum::actingAs($this->student);
+
+        $this->postJson('/api/student/attendance/check-in', [
+            'qr_token' => $otherRegistration->qr_token,
+        ])->assertNotFound();
+
+        $this->assertDatabaseCount('attendances', 0);
+    }
 }

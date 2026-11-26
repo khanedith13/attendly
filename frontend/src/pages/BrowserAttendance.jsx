@@ -1,185 +1,235 @@
-import { useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useParams } from "react-router-dom";
 import Button from "../components/Button";
 import Card from "../components/Card";
 import FormField from "../components/FormField";
+import LoadingBlock from "../components/LoadingBlock";
 import Modal from "../components/Modal";
 import Notice from "../components/Notice";
 import PageHeader from "../components/PageHeader";
 import SelfieCapture from "../components/SelfieCapture";
-import { getCatalog } from "../services/catalog";
-import { recordPublicAttendance } from "../services/roster";
-import { firstErrors } from "../utils/apiErrors";
+import { useAuth } from "../hooks/useAuth";
+import { useAsyncData } from "../hooks/useAsyncData";
+import { getAccount } from "../services/accountService";
+import {
+  checkIn,
+  checkOut,
+  guestCheckIn,
+  guestCheckOut,
+} from "../services/studentService";
 import { formatShortDateTime } from "../utils/format";
-import { isStudentId } from "../utils/validators";
+
+const emptyStudent = {
+  studentId: "",
+  name: "",
+  email: "",
+  course: "",
+  yearLevel: "",
+};
+
+async function selfieFile(dataUrl) {
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+  return new File([blob], "attendance-selfie.jpg", {
+    type: blob.type || "image/jpeg",
+  });
+}
 
 export default function BrowserAttendance({ direction }) {
   const { token } = useParams();
-  const [values, setValues] = useState({
-    studentId: "",
-    name: "",
-    course: "",
-    yearLevel: "",
-  });
+  const { user, loading: authLoading } = useAuth();
+  const [guestStudent, setGuestStudent] = useState(emptyStudent);
   const [selfie, setSelfie] = useState("");
-  const [errors, setErrors] = useState({});
-  const [errorMessage, setErrorMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const [receipt, setReceipt] = useState(null);
+  const loadProfile = useCallback(async () => {
+    if (!user || user.role !== "student") return null;
+    const account = await getAccount();
+    return {
+      studentId: account.studentId ?? "",
+      name: user.name ?? "",
+      email: user.email ?? "",
+      course: account.course ?? "",
+      yearLevel: account.yearLevel ?? "",
+    };
+  }, [user]);
+  const {
+    data: profile,
+    loading: profileLoading,
+    error: profileError,
+  } = useAsyncData(loadProfile);
+  const student = user ? profile ?? emptyStudent : guestStudent;
+  const profilePending = user?.role === "student" && profile === null && !profileError;
 
-  const event = useMemo(() => {
-    const tokenField = direction === "in" ? "qrIn" : "qrOut";
-    return getCatalog().find((item) => item[tokenField] === token) ?? null;
-  }, [direction, token]);
+  if (authLoading || profileLoading || profilePending) return <LoadingBlock />;
 
-  function handleChange(changeEvent) {
-    const { name, value } = changeEvent.target;
-    setValues((current) => ({ ...current, [name]: value }));
-    setErrors((current) => ({ ...current, [name]: undefined }));
-    setErrorMessage("");
-  }
-
-  async function handleSubmit(submitEvent) {
-    submitEvent.preventDefault();
-    if (submitting || !event) return;
-    if (!selfie) {
-      setErrorMessage("Take a selfie before submitting attendance.");
-      return;
-    }
-    const nextErrors = {};
-    if (!values.studentId.trim()) nextErrors.studentId = "Student ID is required.";
-    else if (!isStudentId(values.studentId)) {
-      nextErrors.studentId = "Use the format 2026-10452.";
-    }
-    if (!values.name.trim()) nextErrors.name = "Full name is required.";
-    if (!values.course.trim()) nextErrors.course = "Course is required.";
-    if (!values.yearLevel.trim()) nextErrors.yearLevel = "Year level is required.";
-    if (Object.keys(nextErrors).length > 0) {
-      setErrors(nextErrors);
-      return;
-    }
-
-    setSubmitting(true);
-    setErrors({});
-    setErrorMessage("");
-    try {
-      const attendance = recordPublicAttendance({
-        token,
-        direction,
-        ...values,
-        selfie,
-      });
-      setReceipt(attendance);
-    } catch (submitError) {
-      setErrors(firstErrors(submitError.errors));
-      setErrorMessage(submitError.message);
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  if (!event) {
+  if (user && user.role !== "student") {
     return (
       <main style={{ width: "min(100% - 32px, 680px)", margin: "48px auto" }}>
-        <Card title="Invalid attendance QR">
-          <Notice tone="danger">
-            This attendance link is invalid or does not belong to an event in this browser.
-          </Notice>
+        <Card title="Student account required">
+          <Notice tone="danger">Only a student account can submit attendance.</Notice>
         </Card>
       </main>
     );
   }
 
   const directionLabel = direction === "in" ? "Attendance in" : "Attendance out";
+  const isGuest = !user;
+
+  function handleStudentChange(event) {
+    const { name, value } = event.target;
+    setGuestStudent((current) => ({ ...current, [name]: value }));
+  }
+
+  async function submitAttendance(event) {
+    event.preventDefault();
+    if (submitting || !selfie) return;
+
+    setSubmitting(true);
+    setError("");
+
+    try {
+      const photo = await selfieFile(selfie);
+      const result = isGuest
+        ? direction === "in"
+          ? await guestCheckIn({ qrToken: token, selfie: photo, student })
+          : await guestCheckOut({ qrToken: token, selfie: photo, student })
+        : direction === "in"
+          ? await checkIn(user, { qrToken: token, selfie: photo })
+          : await checkOut(user, { qrToken: token, selfie: photo });
+
+      setReceipt({
+        event: result.eventTitle,
+        time: direction === "in" ? result.timeIn : result.timeOut,
+        direction,
+        student: result.student ?? student,
+        selfie,
+        status: result.status,
+      });
+    } catch (submitError) {
+      setError(submitError.message);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const requiredFieldsComplete = Object.values(student).every((value) => value.trim());
 
   return (
     <main style={{ width: "min(100% - 32px, 680px)", margin: "32px auto" }}>
       <PageHeader
         eyebrow="Event attendance"
         title={directionLabel}
-        subtitle="Enter your registered student details and take a required selfie to submit."
+        subtitle={
+          isGuest
+            ? "Enter the details used for your event registration, then take a selfie."
+            : "Review your registered details and take a selfie before submitting attendance."
+        }
       />
 
-      <Card title={event.title}>
-        <form className="attendance__form" onSubmit={handleSubmit}>
-          <FormField
-            id="studentId"
-            name="studentId"
-            label="Student ID"
-            placeholder="2026-10452"
-            value={values.studentId}
-            onChange={handleChange}
-            error={errors.studentId}
-            autoComplete="off"
-          />
-          <FormField
-            id="fullName"
-            name="name"
-            label="Full name"
-            value={values.name}
-            onChange={handleChange}
-            error={errors.name}
-            autoComplete="name"
-          />
-          <FormField
-            id="course"
-            name="course"
-            label="Course"
-            value={values.course}
-            onChange={handleChange}
-            error={errors.course}
-          />
-          <FormField
-            id="yearLevel"
-            name="yearLevel"
-            label="Year level"
-            placeholder="e.g. 3rd Year"
-            value={values.yearLevel}
-            onChange={handleChange}
-            error={errors.yearLevel}
-          />
+      <form className="attendance__form" onSubmit={submitAttendance}>
+        <Card title={isGuest ? "Student information" : "Your registered information"}>
+          {profileError && <Notice tone="danger">{profileError.message}</Notice>}
+          {isGuest ? (
+            <div className="attendance__form">
+              <FormField
+                id="studentId"
+                name="studentId"
+                label="Student ID"
+                placeholder="2026-12345"
+                value={student.studentId}
+                onChange={handleStudentChange}
+                required
+              />
+              <FormField
+                id="studentName"
+                name="name"
+                label="Full name"
+                placeholder="Enter your registered full name"
+                value={student.name}
+                onChange={handleStudentChange}
+                required
+              />
+              <FormField
+                id="studentEmail"
+                name="email"
+                type="email"
+                label="School email"
+                placeholder="student@school.edu.ph"
+                value={student.email}
+                onChange={handleStudentChange}
+                required
+              />
+              <FormField
+                id="course"
+                name="course"
+                label="Course"
+                placeholder="Enter your registered course"
+                value={student.course}
+                onChange={handleStudentChange}
+                required
+              />
+              <FormField
+                id="yearLevel"
+                name="yearLevel"
+                label="Year level"
+                placeholder="e.g. 1st Year"
+                value={student.yearLevel}
+                onChange={handleStudentChange}
+                required
+              />
+            </div>
+          ) : (
+            <div className="attendance__form">
+              <p><strong>Student ID:</strong> {student.studentId || "Not set in your account"}</p>
+              <p><strong>Full name:</strong> {student.name}</p>
+              <p><strong>School email:</strong> {student.email}</p>
+              <p><strong>Course:</strong> {student.course || "Not set"}</p>
+              <p><strong>Year level:</strong> {student.yearLevel || "Not set"}</p>
+              {!requiredFieldsComplete && (
+                <Notice tone="warning">
+                  Complete your student profile before submitting attendance.
+                </Notice>
+              )}
+            </div>
+          )}
+        </Card>
 
-          <p className="attendance__note">
-            Your selfie is shared with the event organizer for attendance verification.
-          </p>
-          <SelfieCapture
-            key={token}
-            onCapture={(image) => {
-              setSelfie(image);
-              setErrorMessage("");
-            }}
-          />
-          {submitting && <Notice tone="info">Submitting attendance...</Notice>}
-          {errorMessage && <Notice tone="danger">{errorMessage}</Notice>}
-          <Button type="submit" size="lg" className="btn--block" disabled={submitting || !selfie}>
-            {submitting ? "Submitting..." : "Submit attendance"}
-          </Button>
-        </form>
-      </Card>
+        <Card title="Take your attendance selfie">
+          <p>Allow camera access and capture a clear photo before submitting.</p>
+          <SelfieCapture onCapture={setSelfie} />
+        </Card>
+
+        {error && <Notice tone="danger">{error}</Notice>}
+        <Button
+          type="submit"
+          className="btn--block"
+          disabled={submitting || !selfie || !requiredFieldsComplete}
+        >
+          {submitting ? "Submitting attendance..." : `Submit ${directionLabel}`}
+        </Button>
+      </form>
 
       {receipt && (
-        <Modal title="Attendance confirmed" onClose={() => setReceipt(null)}>
+        <Modal title="Attendance receipt" onClose={() => setReceipt(null)} maxWidth={560}>
           <div className="attendance__form">
-            <p>
-              <strong>Event:</strong> {receipt.event.title}
-            </p>
-            <p>
-              <strong>{directionLabel}:</strong> {formatShortDateTime(receipt.time)}
-            </p>
-            <p>
-              <strong>Student ID:</strong> {receipt.student.studentId}
-            </p>
-            <p>
-              <strong>Full name:</strong> {receipt.student.name}
-            </p>
-            <p>
-              <strong>Course:</strong> {receipt.student.course}
-            </p>
-            <p>
-              <strong>Year level:</strong> {receipt.student.yearLevel}
-            </p>
+            <p><strong>Event:</strong> {receipt.event}</p>
+            <p><strong>Attendance:</strong> {directionLabel}</p>
+            <p><strong>Date and time:</strong> {formatShortDateTime(receipt.time)}</p>
+            <p><strong>Student ID:</strong> {receipt.student.studentId}</p>
+            <p><strong>Full name:</strong> {receipt.student.name}</p>
+            <p><strong>School email:</strong> {receipt.student.email}</p>
+            <p><strong>Course:</strong> {receipt.student.course || "—"}</p>
+            <p><strong>Year level:</strong> {receipt.student.yearLevel || "—"}</p>
+            <p><strong>Status:</strong> {receipt.status}</p>
+            <img
+              src={receipt.selfie}
+              alt="Attendance selfie receipt"
+              style={{ width: "100%", maxWidth: 320, borderRadius: 12, alignSelf: "center" }}
+            />
             <Button variant="outline" className="btn--block" onClick={() => setReceipt(null)}>
-              Close
+              Close receipt
             </Button>
           </div>
         </Modal>

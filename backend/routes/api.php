@@ -2,12 +2,16 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\GuestAttendanceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PublicSettingsController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OrganizerEventController;
 use App\Http\Controllers\StudentEventController;
 use App\Http\Controllers\StudentRegistrationController;
+use App\Http\Controllers\OrganizerDashboardController;
+use App\Http\Controllers\OrganizerRosterController;
+use App\Http\Controllers\OrganizerProfileController;
 use App\Http\Controllers\AdminSettingsController;
 use App\Http\Controllers\AdminAuditLogController;
 use App\Http\Controllers\AdminOrganizerController;
@@ -27,6 +31,25 @@ Route::get('/settings/public', [
     PublicSettingsController::class,
     'show',
 ]);
+
+Route::middleware('throttle:30,1')->prefix('attendance/guest')->group(function () {
+    Route::post('/check-in', [GuestAttendanceController::class, 'checkIn']);
+    Route::post('/check-out', [GuestAttendanceController::class, 'checkOut']);
+});
+
+Route::prefix('attendance/guest')
+    ->middleware('throttle:10,1')
+    ->group(function () {
+        Route::post('/check-in', [
+            GuestAttendanceController::class,
+            'checkIn',
+        ]);
+
+        Route::post('/check-out', [
+            GuestAttendanceController::class,
+            'checkOut',
+        ]);
+    });
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])
@@ -81,6 +104,13 @@ Route::middleware([
 Route::middleware(['auth:sanctum', 'active', 'role:organizer'])
     ->prefix('organizer')
     ->group(function () {
+        Route::get('/dashboard', [OrganizerDashboardController::class, 'show']);
+        Route::get('/attendees', [OrganizerRosterController::class, 'attendees']);
+        Route::get('/attendees/{registration}/selfie/{direction}', [OrganizerRosterController::class, 'selfie']);
+        Route::get('/registrations', [OrganizerRosterController::class, 'registrations']);
+        Route::get('/profile', [OrganizerProfileController::class, 'show']);
+        Route::put('/profile', [OrganizerProfileController::class, 'update']);
+
         Route::get('/events', [OrganizerEventController::class, 'index']);
         Route::post('/events', [OrganizerEventController::class, 'store']);
         Route::get('/events/{event}', [OrganizerEventController::class, 'show']);
@@ -88,6 +118,7 @@ Route::middleware(['auth:sanctum', 'active', 'role:organizer'])
         Route::post('/events/{event}/publish', [OrganizerEventController::class, 'publish']);
         Route::post('/events/{event}/cancel', [OrganizerEventController::class, 'cancel']);
     });
+
 
 Route::middleware(['auth:sanctum', 'active', 'role:student'])
     ->get('/events', [StudentEventController::class, 'index']);

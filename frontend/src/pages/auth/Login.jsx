@@ -81,7 +81,21 @@ export default function Login() {
         { email: form.email, password: form.password, remember: form.remember },
         role,
       );
-      navigate(homePath(user.role), { replace: true });
+      const returnTo = location.state?.from;
+      const isAttendanceDestination =
+        returnTo?.pathname?.startsWith("/check-in/") ||
+        returnTo?.pathname?.startsWith("/check-out/");
+
+      navigate(
+        isAttendanceDestination
+          ? {
+              pathname: returnTo.pathname,
+              search: returnTo.search ?? "",
+              hash: returnTo.hash ?? "",
+            }
+          : homePath(user.role),
+        { replace: true },
+      );
     } catch (error) {
       setErrors({
         ...firstErrors(error.errors),

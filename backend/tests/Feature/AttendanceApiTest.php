@@ -10,6 +10,8 @@ use App\Models\User;
 use App\Services\SettingsService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -33,6 +35,8 @@ class AttendanceApiTest extends TestCase
         $this->testNow = Carbon::parse('2026-11-23 10:00:00', 'Asia/Manila');
         Carbon::setTestNow($this->testNow);
 
+        Storage::fake('local');
+
         $this->seed(\Database\Seeders\SettingsSeeder::class);
         app(SettingsService::class)->flush();
 
@@ -55,6 +59,7 @@ class AttendanceApiTest extends TestCase
 
         $this->postJson('/api/student/attendance/check-in', [
             'qr_token' => $this->event->qr_in_token,
+            'selfie' => $this->selfie(),
         ])
             ->assertCreated()
             ->assertJsonPath('attendance.event.id', $this->event->id)
@@ -80,6 +85,7 @@ class AttendanceApiTest extends TestCase
         $this->postJson('/api/student/attendance/check-in', [
             'event_id' => $this->event->id,
             'email' => strtoupper($this->student->email),
+            'selfie' => $this->selfie(),
         ])
             ->assertCreated()
             ->assertJsonPath('attendance.event.id', $this->event->id);
@@ -96,6 +102,7 @@ class AttendanceApiTest extends TestCase
         $this->postJson('/api/student/attendance/check-in', [
             'event_id' => $this->event->id,
             'email' => 'someone-else@school.edu.ph',
+            'selfie' => $this->selfie(),
         ])->assertUnprocessable();
 
         $this->assertDatabaseCount('attendances', 0);
@@ -111,6 +118,7 @@ class AttendanceApiTest extends TestCase
         $this->postJson('/api/student/attendance/check-in', [
             'event_id' => $this->event->id,
             'email' => $student->email,
+            'selfie' => $this->selfie(),
         ])->assertUnprocessable();
 
         $this->assertDatabaseCount('attendances', 0);
@@ -123,6 +131,7 @@ class AttendanceApiTest extends TestCase
 
         $this->postJson('/api/student/attendance/check-in', [
             'qr_token' => $this->event->qr_in_token,
+            'selfie' => $this->selfie(),
         ])->assertNotFound();
 
         $this->assertDatabaseCount('attendances', 0);
@@ -132,15 +141,18 @@ class AttendanceApiTest extends TestCase
     {
         Sanctum::actingAs($this->student);
 
-        $payload = ['qr_token' => $this->event->qr_in_token];
+        $this->postJson('/api/student/attendance/check-in', [
+            'qr_token' => $this->event->qr_in_token,
+            'selfie' => $this->selfie('first.png'),
+        ])->assertCreated();
 
-        $this->postJson('/api/student/attendance/check-in', $payload)
-            ->assertCreated();
-
-        $this->postJson('/api/student/attendance/check-in', $payload)
-            ->assertStatus(409);
+        $this->postJson('/api/student/attendance/check-in', [
+            'qr_token' => $this->event->qr_in_token,
+            'selfie' => $this->selfie('duplicate.png'),
+        ])->assertStatus(409);
 
         $this->assertDatabaseCount('attendances', 1);
+        $this->assertCount(1, Storage::disk('local')->allFiles('attendance/selfies'));
     }
 
     public function test_student_cannot_have_two_active_event_sessions(): void
@@ -152,10 +164,12 @@ class AttendanceApiTest extends TestCase
 
         $this->postJson('/api/student/attendance/check-in', [
             'qr_token' => $this->event->qr_in_token,
+            'selfie' => $this->selfie(),
         ])->assertCreated();
 
         $this->postJson('/api/student/attendance/check-in', [
             'qr_token' => $secondEvent->qr_in_token,
+            'selfie' => $this->selfie(),
         ])->assertStatus(409);
 
         $this->assertDatabaseCount('attendances', 1);
@@ -167,6 +181,7 @@ class AttendanceApiTest extends TestCase
 
         $this->postJson('/api/student/attendance/check-in', [
             'qr_token' => $this->event->qr_out_token,
+            'selfie' => $this->selfie(),
         ])->assertNotFound();
 
         $this->assertDatabaseCount('attendances', 0);
@@ -179,6 +194,7 @@ class AttendanceApiTest extends TestCase
 
         $this->postJson('/api/student/attendance/check-in', [
             'qr_token' => $this->event->qr_in_token,
+            'selfie' => $this->selfie(),
         ])->assertStatus(409);
 
         $this->assertDatabaseCount('attendances', 0);
@@ -190,12 +206,14 @@ class AttendanceApiTest extends TestCase
 
         $this->postJson('/api/student/attendance/check-in', [
             'qr_token' => $this->event->qr_in_token,
+            'selfie' => $this->selfie(),
         ])->assertCreated();
 
         Carbon::setTestNow($this->testNow->copy()->addMinutes(45));
 
         $this->postJson('/api/student/attendance/check-out', [
             'qr_token' => $this->event->qr_out_token,
+            'selfie' => $this->selfie(),
         ])
             ->assertOk()
             ->assertJsonPath('attendance.event.id', $this->event->id)
@@ -213,10 +231,12 @@ class AttendanceApiTest extends TestCase
         $this->postJson('/api/student/attendance/check-in', [
             'event_id' => $this->event->id,
             'email' => $this->student->email,
+            'selfie' => $this->selfie(),
         ])->assertCreated();
 
         $this->postJson('/api/student/attendance/check-out', [
             'email' => $this->student->email,
+            'selfie' => $this->selfie(),
         ])->assertOk();
 
         $this->assertNotNull(
@@ -230,10 +250,12 @@ class AttendanceApiTest extends TestCase
 
         $this->postJson('/api/student/attendance/check-in', [
             'qr_token' => $this->event->qr_in_token,
+            'selfie' => $this->selfie(),
         ])->assertCreated();
 
         $this->postJson('/api/student/attendance/check-out', [
             'email' => 'someone-else@school.edu.ph',
+            'selfie' => $this->selfie(),
         ])->assertUnprocessable();
 
         $this->assertDatabaseHas('attendances', [
@@ -248,6 +270,7 @@ class AttendanceApiTest extends TestCase
 
         $this->postJson('/api/student/attendance/check-out', [
             'qr_token' => $this->event->qr_out_token,
+            'selfie' => $this->selfie(),
         ])->assertStatus(409);
     }
 
@@ -260,10 +283,12 @@ class AttendanceApiTest extends TestCase
 
         $this->postJson('/api/student/attendance/check-in', [
             'qr_token' => $this->event->qr_in_token,
+            'selfie' => $this->selfie(),
         ])->assertCreated();
 
         $this->postJson('/api/student/attendance/check-out', [
             'qr_token' => $otherEvent->qr_out_token,
+            'selfie' => $this->selfie(),
         ])->assertStatus(409);
 
         $this->assertDatabaseHas('attendances', [
@@ -278,15 +303,18 @@ class AttendanceApiTest extends TestCase
 
         $this->postJson('/api/student/attendance/check-in', [
             'qr_token' => $this->event->qr_in_token,
+            'selfie' => $this->selfie(),
         ])->assertCreated();
 
-        $payload = ['qr_token' => $this->event->qr_out_token];
+        $this->postJson('/api/student/attendance/check-out', [
+            'qr_token' => $this->event->qr_out_token,
+            'selfie' => $this->selfie('first-out.png'),
+        ])->assertOk();
 
-        $this->postJson('/api/student/attendance/check-out', $payload)
-            ->assertOk();
-
-        $this->postJson('/api/student/attendance/check-out', $payload)
-            ->assertStatus(409);
+        $this->postJson('/api/student/attendance/check-out', [
+            'qr_token' => $this->event->qr_out_token,
+            'selfie' => $this->selfie('duplicate-out.png'),
+        ])->assertStatus(409);
     }
 
     public function test_active_attendance_endpoint_returns_only_the_students_active_session(): void
@@ -299,6 +327,7 @@ class AttendanceApiTest extends TestCase
 
         $this->postJson('/api/student/attendance/check-in', [
             'qr_token' => $this->event->qr_in_token,
+            'selfie' => $this->selfie(),
         ])->assertCreated();
 
         $this->getJson('/api/student/attendance/active')
@@ -330,7 +359,13 @@ class AttendanceApiTest extends TestCase
             'qr_token' => $this->event->qr_in_token,
             'event_id' => $this->event->id,
             'email' => $this->student->email,
+            'selfie' => $this->selfie(),
         ])->assertUnprocessable();
+    }
+
+    private function selfie(string $name = 'selfie.png'): UploadedFile
+    {
+        return UploadedFile::fake()->create($name, 100, 'image/png');
     }
 
     private function createStudent(?string $email = null): User
@@ -390,6 +425,7 @@ class AttendanceApiTest extends TestCase
 
         $this->postJson('/api/student/attendance/check-in', [
             'qr_token' => $this->registration->qr_token,
+            'selfie' => $this->selfie(),
         ])
             ->assertCreated()
             ->assertJsonPath('attendance.event.id', $this->event->id);
@@ -408,6 +444,7 @@ class AttendanceApiTest extends TestCase
 
         $this->postJson('/api/student/attendance/check-in', [
             'qr_token' => $otherRegistration->qr_token,
+            'selfie' => $this->selfie(),
         ])->assertNotFound();
 
         $this->assertDatabaseCount('attendances', 0);

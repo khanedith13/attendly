@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Password;
+use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -13,13 +14,27 @@ class PasswordResetEmailTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_the_reset_email_is_sent_to_the_account_and_its_link_resets_the_password(): void
+    /** @return array<string, array{string, string}> */
+    public static function accountTypes(): array
     {
+        return [
+            'student' => ['student', 'active'],
+            'organizer' => ['organizer', 'active'],
+            'pending organizer' => ['organizer', 'pending'],
+            'admin' => ['admin', 'active'],
+        ];
+    }
+
+    #[DataProvider('accountTypes')]
+    public function test_the_reset_email_is_sent_to_the_account_and_its_link_resets_the_password(
+        string $role,
+        string $status,
+    ): void {
         User::factory()->create([
             'email' => 'maria.cruz@usjr.edu.ph',
             'password' => 'OldPassword123',
-            'role' => 'student',
-            'status' => 'active',
+            'role' => $role,
+            'status' => $status,
         ]);
 
         $this->postJson('/api/auth/forgot-password', [

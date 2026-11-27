@@ -11,7 +11,7 @@ class SettingsSeeder extends Seeder
     {
         $settings = [
             'platform_name' => 'Attendly',
-            'school_domain' => 'school.edu.ph',
+            'school_domain' => config('attendly.school_domain'),
             'require_school_gmail' => 'true',
             'require_event_approval' => 'false',
             'allow_organizer_signup' => 'true',

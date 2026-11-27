@@ -375,16 +375,19 @@ Set the matching database name, username, and password in `.env`.
 php artisan migrate
 ```
 
-If the repository includes seeders and you intend to load development
-sample data:
+Load the default platform settings (this creates no accounts or events):
 
 ``` bash
 php artisan db:seed
 ```
 
-Only run seeders that are present in the repository and intended for
-your environment. The supplied documents do not define production seed
-data or default account credentials.
+Create the first admin account with a password you type at the prompt:
+
+``` bash
+php artisan attendly:create-admin you@usjr.edu.ph "Your Name"
+```
+
+The project ships no demo accounts or default credentials.
 
 ### 6. Install frontend dependencies
 

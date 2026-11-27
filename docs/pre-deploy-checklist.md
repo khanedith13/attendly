@@ -11,6 +11,8 @@ Tick every item before the first real event.
 ## 2. Configuration and security
 - [ ] `APP_ENV=production` and `APP_DEBUG=false`
 - [ ] A new `APP_KEY` generated on the server
+- [ ] `SCHOOL_DOMAIN=usjr.edu.ph` is set before seeding, so only `@usjr.edu.ph` emails can create accounts
+- [ ] `APP_NAME=Attendly` and a real `MAIL_*` setup (SMTP host, username, password, a verified `MAIL_FROM_ADDRESS`)
 - [ ] A new database password (the old one is in git history)
 - [ ] Only `SettingsSeeder` is run; the full seeder creates a demo admin with a known password
 - [ ] The real admin is created with `php artisan attendly:create-admin`
@@ -20,6 +22,8 @@ Tick every item before the first real event.
 - [ ] Upload limits allow a 5 MB selfie (nginx `client_max_body_size`, PHP `upload_max_filesize` and `post_max_size`)
 
 ## 3. Manual test on a real phone
+- [ ] Create an account with a real `@usjr.edu.ph` address, and confirm a Gmail address is refused
+- [ ] Use "Forgot password", receive the email (check spam), open the link, set a new password and log in
 - [ ] Guest: check in, check out, then try a wrong detail, a wrong QR and a duplicate check-in
 - [ ] Student: register for an event, scan check-in, see the receipt with the selfie, check out
 - [ ] Organizer: sign up, get approved, create and publish an event, download both QR codes, see the roster and selfies
@@ -37,5 +41,5 @@ Tick every item before the first real event.
 - [ ] Database and selfie backups run nightly and one restore has been tested
 
 ## 6. Known gaps to accept knowingly
-- [ ] Password-reset email needs a real mail service (`MAIL_*` in `.env`); until then nothing is sent
+- [ ] Account creation does not verify that the person owns the school mailbox; anyone can sign up with an unused `@usjr.edu.ph` address
 - [ ] Admin settings marked "Backend later" (auto-mark absent, session timeout, two-factor for admins, the two email alerts) are saved but do not change behavior yet

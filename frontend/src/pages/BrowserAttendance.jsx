@@ -157,7 +157,7 @@ export default function BrowserAttendance({ direction }) {
                 name="email"
                 type="email"
                 label="School email"
-                placeholder="student@school.edu.ph"
+                placeholder="student@usjr.edu.ph"
                 value={student.email}
                 onChange={handleStudentChange}
                 required

@@ -5,7 +5,7 @@ const SETTINGS_KEY = "attendly_settings_v1";
 
 export const defaultSettings = {
   platformName: "Attendly",
-  schoolDomain: "school.edu.ph",
+  schoolDomain: "usjr.edu.ph",
   requireSchoolGmail: true,
   requireEventApproval: false,
   allowOrganizerSignup: true,

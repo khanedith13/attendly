@@ -30,6 +30,8 @@ export default function ForgotPasswordModal({ initialEmail = "", onClose }) {
     try {
       await requestPasswordReset(email);
       setSent(true);
+    } catch (requestError) {
+      setError(requestError.message);
     } finally {
       setSending(false);
     }

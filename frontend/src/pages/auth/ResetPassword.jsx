@@ -49,10 +49,8 @@ export default function ResetPassword() {
 
       setSuccess(true);
     } catch (requestError) {
-      const responseMessage = requestError.response?.data?.message;
-
       setError(
-        responseMessage ||
+        requestError.message ||
           "The reset link is invalid or expired. Request a new link.",
       );
     } finally {

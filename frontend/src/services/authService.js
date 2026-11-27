@@ -56,15 +56,12 @@ export async function getCurrentUser() {
   }
 }
 
-// Password changes are handled by accountService through the API.
+// The server answers 202 for every email, so an error here is a real problem
+// (offline, rate limited) and is shown to the person.
 export async function requestPasswordReset(email) {
-  try {
-    await api.post("/auth/forgot-password", {
-      email: email.trim().toLowerCase(),
-    });
-  } catch {
-    // Always show the same result to avoid revealing whether an email exists.
-  }
+  await api.post("/auth/forgot-password", {
+    email: email.trim().toLowerCase(),
+  });
 }
 
 export async function resetPassword({

@@ -123,7 +123,7 @@ export default function Login() {
           name="email"
           type="email"
           label="School Gmail"
-          placeholder="student@school.edu.ph"
+          placeholder="student@usjr.edu.ph"
           value={form.email}
           onChange={handleChange}
           error={errors.email}

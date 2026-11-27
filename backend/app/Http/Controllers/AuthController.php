@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class AuthController extends Controller
 {
@@ -145,9 +146,18 @@ class AuthController extends Controller
 
         $email = Str::lower(trim($validated['email']));
 
-        $status = Password::sendResetLink([
-            'email' => $email,
-        ]);
+        try {
+            $status = Password::sendResetLink([
+                'email' => $email,
+            ]);
+        } catch (Throwable $exception) {
+            // Mail is only attempted for real accounts, so an error response
+            // would reveal which emails are registered. Log it and answer the
+            // same way as a success.
+            report($exception);
+
+            return response()->noContent(202);
+        }
 
         if ($status === Password::RESET_LINK_SENT) {
             $user = User::where('email', $email)->first();

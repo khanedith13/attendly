@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Attendance;
 use App\Models\Event;
 use App\Models\Registration;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -35,29 +36,13 @@ class DatabaseSchemaTest extends TestCase
         ]);
     }
 
-    public function test_demo_accounts_keep_ids_one_two_and_three(): void
+    public function test_the_default_seeder_creates_settings_only(): void
     {
         $this->seed();
 
-        $demoAccounts = User::whereIn('id', [1, 2, 3])
-            ->orderBy('id')
-            ->get(['id', 'name', 'email', 'role']);
-
-        $this->assertSame([1, 2, 3], $demoAccounts->pluck('id')->all());
-
-        $this->assertSame(
-            [
-                'admin@school.edu.ph',
-                'student@school.edu.ph',
-                'organizer@school.edu.ph',
-            ],
-            $demoAccounts->pluck('email')->all(),
-        );
-
-        $this->assertSame(
-            ['admin', 'student', 'organizer'],
-            $demoAccounts->pluck('role')->all(),
-        );
+        $this->assertSame(0, User::query()->count());
+        $this->assertSame(0, Event::query()->count());
+        $this->assertGreaterThan(0, Setting::query()->count());
     }
 
     public function test_event_and_registration_qr_tokens_are_generated_as_uuids(): void

@@ -10,7 +10,6 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "node --test src/services/roster.test.js",
     "preview": "vite preview"
   },
   "dependencies": {

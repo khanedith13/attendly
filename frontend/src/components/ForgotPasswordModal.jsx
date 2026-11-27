@@ -59,7 +59,6 @@ export default function ForgotPasswordModal({ initialEmail = "", onClose }) {
             name="resetEmail"
             type="email"
             label="School Gmail"
-            hint={import.meta.env.DEV ? "Demo mode: no email is actually sent." : undefined}
             value={email}
             onChange={(event) => {
               setEmail(event.target.value);

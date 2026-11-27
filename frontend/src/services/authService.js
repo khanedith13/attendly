@@ -1,6 +1,5 @@
 import api from "../api/axios";
 import { storage } from "../utils/storage";
-import { readUsers, saveUsers } from "./userStore";
 
 export async function login({ email, password, remember = true }) {
   const { data } = await api.post("/auth/login", {
@@ -55,16 +54,6 @@ export async function getCurrentUser() {
     // If the server is temporarily unreachable, retain the saved session.
     return user;
   }
-}
-
-// Keep this temporarily because organizerService.saveOrganizerProfile
-// still calls it until Step 25.
-export async function updateProfile(userId, { name }) {
-  saveUsers(
-    readUsers().map((user) =>
-      user.id === userId ? { ...user, name } : user,
-    ),
-  );
 }
 
 // Password changes are handled by accountService through the API.

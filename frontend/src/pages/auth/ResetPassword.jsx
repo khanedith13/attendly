@@ -49,10 +49,7 @@ export default function ResetPassword() {
 
       setSuccess(true);
     } catch (requestError) {
-      setError(
-        requestError.message ||
-          "The reset link is invalid or expired. Request a new link.",
-      );
+      setError(requestError.message || "The reset link is invalid or expired. Request a new link.");
     } finally {
       setSubmitting(false);
     }
@@ -69,21 +66,21 @@ export default function ResetPassword() {
         {success ? (
           <>
             <Notice tone="success">
-              Your password has been reset successfully. You can now sign in
-              using your new password.
+              Your password has been reset successfully. You can now sign in using your new
+              password.
             </Notice>
 
-            <Button className="btn--block" onClick={() => {
-              window.location.assign("/login");
-            }}>
+            <Button
+              className="btn--block"
+              onClick={() => {
+                window.location.assign("/login");
+              }}
+            >
               Back to login
             </Button>
           </>
         ) : (
-          <form
-            onSubmit={handleSubmit}
-            style={{ display: "grid", gap: 14 }}
-          >
+          <form onSubmit={handleSubmit} style={{ display: "grid", gap: 14 }}>
             <FormField
               id="newPassword"
               name="newPassword"
@@ -106,11 +103,7 @@ export default function ResetPassword() {
 
             {error && <Notice tone="danger">{error}</Notice>}
 
-            <Button
-              type="submit"
-              className="btn--block"
-              disabled={submitting}
-            >
+            <Button type="submit" className="btn--block" disabled={submitting}>
               {submitting ? "Resetting..." : "Reset password"}
             </Button>
 

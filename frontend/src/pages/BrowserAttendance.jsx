@@ -11,12 +11,7 @@ import SelfieCapture from "../components/SelfieCapture";
 import { useAuth } from "../hooks/useAuth";
 import { useAsyncData } from "../hooks/useAsyncData";
 import { getAccount } from "../services/accountService";
-import {
-  checkIn,
-  checkOut,
-  guestCheckIn,
-  guestCheckOut,
-} from "../services/studentService";
+import { checkIn, checkOut, guestCheckIn, guestCheckOut } from "../services/studentService";
 import { formatShortDateTime } from "../utils/format";
 
 const emptyStudent = {
@@ -54,12 +49,8 @@ export default function BrowserAttendance({ direction }) {
       yearLevel: account.yearLevel ?? "",
     };
   }, [user]);
-  const {
-    data: profile,
-    loading: profileLoading,
-    error: profileError,
-  } = useAsyncData(loadProfile);
-  const student = user ? profile ?? emptyStudent : guestStudent;
+  const { data: profile, loading: profileLoading, error: profileError } = useAsyncData(loadProfile);
+  const student = user ? (profile ?? emptyStudent) : guestStudent;
   const profilePending = user?.role === "student" && profile === null && !profileError;
 
   if (authLoading || profileLoading || profilePending) return <LoadingBlock />;
@@ -183,11 +174,21 @@ export default function BrowserAttendance({ direction }) {
             </div>
           ) : (
             <div className="attendance__form">
-              <p><strong>Student ID:</strong> {student.studentId || "Not set in your account"}</p>
-              <p><strong>Full name:</strong> {student.name}</p>
-              <p><strong>School email:</strong> {student.email}</p>
-              <p><strong>Course:</strong> {student.course || "Not set"}</p>
-              <p><strong>Year level:</strong> {student.yearLevel || "Not set"}</p>
+              <p>
+                <strong>Student ID:</strong> {student.studentId || "Not set in your account"}
+              </p>
+              <p>
+                <strong>Full name:</strong> {student.name}
+              </p>
+              <p>
+                <strong>School email:</strong> {student.email}
+              </p>
+              <p>
+                <strong>Course:</strong> {student.course || "Not set"}
+              </p>
+              <p>
+                <strong>Year level:</strong> {student.yearLevel || "Not set"}
+              </p>
               {!requiredFieldsComplete && (
                 <Notice tone="warning">
                   Complete your student profile before submitting attendance.
@@ -215,18 +216,38 @@ export default function BrowserAttendance({ direction }) {
       {receipt && (
         <Modal title="Attendance receipt" onClose={() => setReceipt(null)} maxWidth={560}>
           <div className="attendance__form">
-            <p><strong>Event:</strong> {receipt.event}</p>
-            <p><strong>Attendance:</strong> {directionLabel}</p>
-            <p><strong>Attendance in:</strong> {formatShortDateTime(receipt.timeIn)}</p>
+            <p>
+              <strong>Event:</strong> {receipt.event}
+            </p>
+            <p>
+              <strong>Attendance:</strong> {directionLabel}
+            </p>
+            <p>
+              <strong>Attendance in:</strong> {formatShortDateTime(receipt.timeIn)}
+            </p>
             {receipt.timeOut && (
-              <p><strong>Attendance out:</strong> {formatShortDateTime(receipt.timeOut)}</p>
+              <p>
+                <strong>Attendance out:</strong> {formatShortDateTime(receipt.timeOut)}
+              </p>
             )}
-            <p><strong>Student ID:</strong> {receipt.student.studentId}</p>
-            <p><strong>Full name:</strong> {receipt.student.name}</p>
-            <p><strong>School email:</strong> {receipt.student.email}</p>
-            <p><strong>Course:</strong> {receipt.student.course || "—"}</p>
-            <p><strong>Year level:</strong> {receipt.student.yearLevel || "—"}</p>
-            <p><strong>Status:</strong> {receipt.status}</p>
+            <p>
+              <strong>Student ID:</strong> {receipt.student.studentId}
+            </p>
+            <p>
+              <strong>Full name:</strong> {receipt.student.name}
+            </p>
+            <p>
+              <strong>School email:</strong> {receipt.student.email}
+            </p>
+            <p>
+              <strong>Course:</strong> {receipt.student.course || "—"}
+            </p>
+            <p>
+              <strong>Year level:</strong> {receipt.student.yearLevel || "—"}
+            </p>
+            <p>
+              <strong>Status:</strong> {receipt.status}
+            </p>
             {receipt.selfieInUrl && (
               <img
                 src={receipt.selfieInUrl}

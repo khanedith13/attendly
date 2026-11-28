@@ -13,7 +13,7 @@ export default function AuthProvider({ children }) {
   // On first load, restore the session (if any) from storage.
   useEffect(() => {
     refreshPublicSettings();
-  
+
     authService
       .getCurrentUser()
       .then(setUser)

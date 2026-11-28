@@ -21,8 +21,8 @@ class AttendanceService
     }
 
     /**
-     * Record the authenticated student's attendance-in using an event QR token,
-     * a registration ticket token, or the approved manual event/email fallback.
+     * Record the authenticated student's attendance-in using the event's
+     * Attendance In QR token.
      */
     public function checkIn(User $user, array $data): Attendance
     {
@@ -30,36 +30,13 @@ class AttendanceService
             // Serialize this student's attendance transitions across events.
             User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
 
-            if (filled($data['qr_token'] ?? null)) {
-                $event = Event::query()
-                    ->where('qr_in_token', $data['qr_token'])
-                    ->lockForUpdate()
-                    ->first();
-
-                if (! $event) {
-                    $ticket = Registration::query()
-                        ->where('qr_token', $data['qr_token'])
-                        ->where('user_id', $user->id)
-                        ->where('status', 'registered')
-                        ->first();
-
-                    $event = $ticket
-                        ? Event::query()->whereKey($ticket->event_id)->lockForUpdate()->first()
-                        : null;
-                }
-            } else {
-                $event = Event::query()
-                    ->whereKey($data['event_id'])
-                    ->lockForUpdate()
-                    ->first();
-            }
+            $event = Event::query()
+                ->where('qr_in_token', $data['qr_token'])
+                ->lockForUpdate()
+                ->first();
 
             if (! $event) {
-                throw new NotFoundHttpException('Attendance event not found.');
-            }
-
-            if (! filled($data['qr_token'] ?? null)) {
-                $this->assertManualIdentity($user, $data['email'] ?? null, $event);
+                throw new NotFoundHttpException('Attendance-in event not found.');
             }
 
             $this->assertEventAvailable($event);
@@ -181,8 +158,8 @@ class AttendanceService
     }
 
     /**
-     * Close the authenticated student's active attendance session using an
-     * event QR token or the approved manual school-email fallback.
+     * Close the authenticated student's active attendance session using the
+     * event's Attendance Out QR token.
      */
     public function checkOut(User $user, array $data): Attendance
     {
@@ -190,39 +167,13 @@ class AttendanceService
             // Match checkIn() lock ordering to serialize this student's transitions.
             User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
 
-            if (filled($data['qr_token'] ?? null)) {
-                $event = Event::query()
-                    ->where('qr_out_token', $data['qr_token'])
-                    ->lockForUpdate()
-                    ->first();
+            $event = Event::query()
+                ->where('qr_out_token', $data['qr_token'])
+                ->lockForUpdate()
+                ->first();
 
-                if (! $event) {
-                    throw new NotFoundHttpException('Attendance-out event not found.');
-                }
-            } else {
-                $activeSession = Attendance::query()
-                    ->with('registration')
-                    ->whereNotNull('time_in')
-                    ->whereNull('time_out')
-                    ->whereHas('registration', fn ($query) => $query
-                        ->where('user_id', $user->id))
-                    ->first();
-
-                $eventId = $data['event_id'] ?? $activeSession?->registration?->event_id;
-
-                if (! $eventId) {
-                    throw new ConflictHttpException(
-                        'You do not have an active attendance session.'
-                    );
-                }
-
-                $event = Event::query()->whereKey($eventId)->lockForUpdate()->first();
-
-                if (! $event) {
-                    throw new NotFoundHttpException('Attendance event not found.');
-                }
-
-                $this->assertManualIdentity($user, $data['email'] ?? null, $event);
+            if (! $event) {
+                throw new NotFoundHttpException('Attendance-out event not found.');
             }
 
             $this->assertEventApproved($event);
@@ -411,23 +362,6 @@ class AttendanceService
                 ->where('status', 'registered'))
             ->orderByDesc('time_in')
             ->first();
-    }
-
-    /**
-     * Ensure manual attendance is tied to the authenticated account profile.
-     */
-    private function assertManualIdentity(User $user, ?string $email, Event $event): void
-    {
-        $registeredEmail = Str::lower(trim($user->email));
-        $submittedEmail = Str::lower(trim((string) $email));
-
-        if (blank($submittedEmail) || ! hash_equals($registeredEmail, $submittedEmail)) {
-            throw new UnprocessableEntityHttpException(
-                'The email address must match your registered account profile.'
-            );
-        }
-
-        $this->assertSchoolEmail($registeredEmail, $event);
     }
 
     private function assertSchoolEmail(string $email, Event $event): void

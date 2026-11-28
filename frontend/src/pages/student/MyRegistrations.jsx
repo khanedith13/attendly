@@ -71,7 +71,7 @@ function RegistrationCard({ item, cancelled, onTicket, onCancel, onRegisterAgain
         ) : (
           <>
             <Button size="sm" onClick={() => onTicket(item)}>
-              View QR ticket
+              View ticket
             </Button>
             <Button size="sm" variant="danger" onClick={() => onCancel(item)}>
               Cancel
@@ -142,7 +142,7 @@ export default function MyRegistrations() {
       <PageHeader
         eyebrow="Registered events"
         title="My registrations"
-        subtitle="View your event tickets, QR codes, and registration status."
+        subtitle="View your event tickets and registration status."
         actions={<Button onClick={() => navigate("/student/events")}>+ Browse events</Button>}
       />
 
@@ -208,8 +208,8 @@ export default function MyRegistrations() {
       {cancelTarget && (
         <Modal title="Cancel registration?" onClose={closeCancel}>
           <p className="reg-confirm">
-            You are about to cancel your registration for <b>{cancelTarget.title}</b>. Your QR
-            ticket will stop working. You can register again later if seats are available.
+            You are about to cancel your registration for <b>{cancelTarget.title}</b>. Your ticket
+            will stop working. You can register again later if seats are available.
           </p>
           <div className="reg-confirm__actions">
             <Button variant="outline" onClick={closeCancel}>

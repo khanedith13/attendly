@@ -3,7 +3,7 @@ import { ApiError } from "../api/ApiError";
 import { refreshPublicSettings } from "./settings";
 
 const unwrapCollection = (response) => response.data?.data ?? [];
-const unwrapResourceCollection = (data) => (Array.isArray(data) ? data : data.data ?? []);
+const unwrapResourceCollection = (data) => (Array.isArray(data) ? data : (data.data ?? []));
 
 export async function getReviewCount() {
   const { data } = await api.get("/admin/dashboard");
@@ -45,7 +45,9 @@ export async function createUser(admin, values) {
 export async function updateUser(admin, id, changes) {
   void admin;
   const payload = Object.fromEntries(
-    ["name", "role", "status"].filter((key) => changes[key] !== undefined).map((key) => [key, changes[key]]),
+    ["name", "role", "status"]
+      .filter((key) => changes[key] !== undefined)
+      .map((key) => [key, changes[key]]),
   );
 
   if (Object.keys(payload).length === 0) {

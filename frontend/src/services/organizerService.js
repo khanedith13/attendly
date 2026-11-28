@@ -9,7 +9,7 @@ export async function getOrganizerDashboard() {
 
 export async function listMyEvents() {
   const { data } = await api.get("/organizer/events");
-  return Array.isArray(data) ? data : data.data ?? [];
+  return Array.isArray(data) ? data : (data.data ?? []);
 }
 
 export async function publishEvent(user, id) {
@@ -62,10 +62,9 @@ export async function getAttendees(user, eventId) {
 }
 
 export async function getAttendeeSelfie(registrationId, direction) {
-  const { data } = await api.get(
-    `/organizer/attendees/${registrationId}/selfie/${direction}`,
-    { responseType: "blob" },
-  );
+  const { data } = await api.get(`/organizer/attendees/${registrationId}/selfie/${direction}`, {
+    responseType: "blob",
+  });
   return URL.createObjectURL(data);
 }
 

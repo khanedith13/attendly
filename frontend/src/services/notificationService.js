@@ -65,7 +65,7 @@ async function organizerAlerts() {
   ]);
   const events = Array.isArray(eventsResponse.data)
     ? eventsResponse.data
-    : eventsResponse.data.data ?? [];
+    : (eventsResponse.data.data ?? []);
   const rows = registrationsResponse.data.rows ?? [];
   const prefs = {
     registrations: true,

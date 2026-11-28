@@ -78,52 +78,6 @@ class AttendanceApiTest extends TestCase
         );
     }
 
-    public function test_student_can_check_in_manually_with_their_registered_school_email(): void
-    {
-        Sanctum::actingAs($this->student);
-
-        $this->postJson('/api/student/attendance/check-in', [
-            'event_id' => $this->event->id,
-            'email' => strtoupper($this->student->email),
-            'selfie' => $this->selfie(),
-        ])
-            ->assertCreated()
-            ->assertJsonPath('attendance.event.id', $this->event->id);
-
-        $this->assertDatabaseHas('attendances', [
-            'registration_id' => $this->registration->id,
-        ]);
-    }
-
-    public function test_manual_check_in_rejects_an_email_that_does_not_match_the_profile(): void
-    {
-        Sanctum::actingAs($this->student);
-
-        $this->postJson('/api/student/attendance/check-in', [
-            'event_id' => $this->event->id,
-            'email' => 'someone-else@school.edu.ph',
-            'selfie' => $this->selfie(),
-        ])->assertUnprocessable();
-
-        $this->assertDatabaseCount('attendances', 0);
-    }
-
-    public function test_manual_check_in_requires_a_school_domain_when_the_event_requires_it(): void
-    {
-        $student = $this->createStudent('student@other.edu.ph');
-        $this->createRegistration($student, $this->event);
-
-        Sanctum::actingAs($student);
-
-        $this->postJson('/api/student/attendance/check-in', [
-            'event_id' => $this->event->id,
-            'email' => $student->email,
-            'selfie' => $this->selfie(),
-        ])->assertUnprocessable();
-
-        $this->assertDatabaseCount('attendances', 0);
-    }
-
     public function test_student_cannot_check_in_without_an_active_registration(): void
     {
         $otherStudent = $this->createStudent();
@@ -224,46 +178,6 @@ class AttendanceApiTest extends TestCase
         );
     }
 
-    public function test_student_can_check_out_manually_with_their_registered_school_email(): void
-    {
-        Sanctum::actingAs($this->student);
-
-        $this->postJson('/api/student/attendance/check-in', [
-            'event_id' => $this->event->id,
-            'email' => $this->student->email,
-            'selfie' => $this->selfie(),
-        ])->assertCreated();
-
-        $this->postJson('/api/student/attendance/check-out', [
-            'email' => $this->student->email,
-            'selfie' => $this->selfie(),
-        ])->assertOk();
-
-        $this->assertNotNull(
-            Attendance::query()->where('registration_id', $this->registration->id)->value('time_out')
-        );
-    }
-
-    public function test_manual_check_out_rejects_an_email_that_does_not_match_the_profile(): void
-    {
-        Sanctum::actingAs($this->student);
-
-        $this->postJson('/api/student/attendance/check-in', [
-            'qr_token' => $this->event->qr_in_token,
-            'selfie' => $this->selfie(),
-        ])->assertCreated();
-
-        $this->postJson('/api/student/attendance/check-out', [
-            'email' => 'someone-else@school.edu.ph',
-            'selfie' => $this->selfie(),
-        ])->assertUnprocessable();
-
-        $this->assertDatabaseHas('attendances', [
-            'registration_id' => $this->registration->id,
-            'time_out' => null,
-        ]);
-    }
-
     public function test_student_cannot_check_out_without_an_active_session(): void
     {
         Sanctum::actingAs($this->student);
@@ -347,20 +261,40 @@ class AttendanceApiTest extends TestCase
         ])->assertForbidden();
     }
 
-    public function test_check_in_requires_exactly_one_qr_token_or_manual_event_id(): void
+    public function test_attendance_requires_the_event_qr_token(): void
     {
         Sanctum::actingAs($this->student);
 
-        $this->postJson('/api/student/attendance/check-in')
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors('qr_token');
+        $this->postJson('/api/student/attendance/check-in', [
+            'selfie' => $this->selfie(),
+        ])->assertUnprocessable()->assertJsonValidationErrors('qr_token');
 
         $this->postJson('/api/student/attendance/check-in', [
-            'qr_token' => $this->event->qr_in_token,
             'event_id' => $this->event->id,
             'email' => $this->student->email,
             'selfie' => $this->selfie(),
-        ])->assertUnprocessable();
+        ])->assertUnprocessable()->assertJsonValidationErrors('qr_token');
+
+        $this->assertDatabaseCount('attendances', 0);
+
+        $this->postJson('/api/student/attendance/check-in', [
+            'qr_token' => $this->event->qr_in_token,
+            'selfie' => $this->selfie(),
+        ])->assertCreated();
+
+        $this->postJson('/api/student/attendance/check-out', [
+            'selfie' => $this->selfie(),
+        ])->assertUnprocessable()->assertJsonValidationErrors('qr_token');
+
+        $this->postJson('/api/student/attendance/check-out', [
+            'email' => $this->student->email,
+            'selfie' => $this->selfie(),
+        ])->assertUnprocessable()->assertJsonValidationErrors('qr_token');
+
+        $this->assertDatabaseHas('attendances', [
+            'registration_id' => $this->registration->id,
+            'time_out' => null,
+        ]);
     }
 
     private function selfie(string $name = 'selfie.png'): UploadedFile
@@ -419,34 +353,21 @@ class AttendanceApiTest extends TestCase
         ]);
     }
 
-    public function test_registered_student_can_check_in_with_their_personal_ticket_qr_token(): void
-    {
-        Sanctum::actingAs($this->student);
-
-        $this->postJson('/api/student/attendance/check-in', [
-            'qr_token' => $this->registration->qr_token,
-            'selfie' => $this->selfie(),
-        ])
-            ->assertCreated()
-            ->assertJsonPath('attendance.event.id', $this->event->id);
-
-        $this->assertDatabaseHas('attendances', [
-            'registration_id' => $this->registration->id,
-        ]);
-    }
-
-    public function test_student_cannot_use_another_students_personal_ticket_qr_token(): void
+    public function test_student_cannot_check_in_with_a_registration_ticket_token(): void
     {
         $otherStudent = $this->createStudent();
         $otherRegistration = $this->createRegistration($otherStudent, $this->event);
 
         Sanctum::actingAs($this->student);
 
-        $this->postJson('/api/student/attendance/check-in', [
-            'qr_token' => $otherRegistration->qr_token,
-            'selfie' => $this->selfie(),
-        ])->assertNotFound();
+        foreach ([$this->registration->qr_token, $otherRegistration->qr_token] as $ticketToken) {
+            $this->postJson('/api/student/attendance/check-in', [
+                'qr_token' => $ticketToken,
+                'selfie' => $this->selfie(),
+            ])->assertNotFound();
+        }
 
         $this->assertDatabaseCount('attendances', 0);
+        $this->assertSame([], Storage::disk('local')->allFiles('attendance/selfies'));
     }
 }

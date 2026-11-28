@@ -64,12 +64,7 @@ export async function requestPasswordReset(email) {
   });
 }
 
-export async function resetPassword({
-  token,
-  email,
-  password,
-  password_confirmation,
-}) {
+export async function resetPassword({ token, email, password, password_confirmation }) {
   const { data } = await api.post("/auth/reset-password", {
     token,
     email: email.trim().toLowerCase(),

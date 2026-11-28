@@ -23,6 +23,7 @@ Thumbs.db
 # Local databases
 *.sqlite
 *.sqlite3
+/*.sql
 
 # IDE settings
 .vscode/*

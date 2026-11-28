@@ -360,10 +360,96 @@ class AttendanceValidationMatrixTest extends TestCase
         ]);
     }
 
+    public function test_logged_in_student_cannot_check_out_with_a_cancelled_registration(): void
+    {
+        Sanctum::actingAs($this->student);
+
+        $this->postJson('/api/student/attendance/check-in', [
+            'qr_token' => $this->event->qr_in_token,
+            'selfie' => $this->selfie(),
+        ])->assertCreated();
+
+        $this->registration->update(['status' => 'cancelled']);
+
+        Carbon::setTestNow($this->testNow->copy()->addMinutes(45));
+
+        $this->postJson('/api/student/attendance/check-out', [
+            'qr_token' => $this->event->qr_out_token,
+            'selfie' => $this->selfie(),
+        ])->assertConflict();
+
+        $this->assertDatabaseHas('attendances', [
+            'registration_id' => $this->registration->id,
+            'time_out' => null,
+        ]);
+        $this->assertCount(1, Storage::disk('local')->allFiles('attendance/selfies'));
+    }
+
+    public function test_logged_in_suspended_student_cannot_check_in(): void
+    {
+        $this->suspendStudent();
+
+        Sanctum::actingAs($this->student);
+
+        $this->postJson('/api/student/attendance/check-in', [
+            'qr_token' => $this->event->qr_in_token,
+            'selfie' => $this->selfie(),
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('attendances', 0);
+        $this->assertSame([], Storage::disk('local')->allFiles('attendance/selfies'));
+    }
+
+    public function test_guest_cannot_check_in_with_a_suspended_account(): void
+    {
+        $this->suspendStudent();
+
+        $this->post('/api/attendance/guest/check-in', [
+            ...$this->studentPayload(),
+            'qr_token' => $this->event->qr_in_token,
+            'selfie' => $this->selfie(),
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('attendances', 0);
+        $this->assertSame([], Storage::disk('local')->allFiles('attendance/selfies'));
+    }
+
+    public function test_guest_cannot_check_out_with_a_suspended_account(): void
+    {
+        $this->post('/api/attendance/guest/check-in', [
+            ...$this->studentPayload(),
+            'qr_token' => $this->event->qr_in_token,
+            'selfie' => $this->selfie(),
+        ])->assertCreated();
+
+        $this->suspendStudent();
+
+        Carbon::setTestNow($this->testNow->copy()->addMinutes(45));
+
+        $this->post('/api/attendance/guest/check-out', [
+            ...$this->studentPayload(),
+            'qr_token' => $this->event->qr_out_token,
+            'selfie' => $this->selfie(),
+        ])->assertForbidden();
+
+        $this->assertDatabaseHas('attendances', [
+            'registration_id' => $this->registration->id,
+            'time_out' => null,
+        ]);
+        $this->assertCount(1, Storage::disk('local')->allFiles('attendance/selfies'));
+    }
+
     /** @param array<string, string> $overrides */
     private function updateEvent(array $overrides): void
     {
         Event::query()->whereKey($this->event->id)->update($overrides);
+    }
+
+    private function suspendStudent(): void
+    {
+        User::query()->whereKey($this->student->id)->update(['status' => 'suspended']);
+
+        $this->student->refresh();
     }
 
     private function selfie(): UploadedFile

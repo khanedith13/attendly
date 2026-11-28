@@ -8,6 +8,7 @@ use App\Models\Registration;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
@@ -123,6 +124,7 @@ class AttendanceService
 
             $this->assertEventAvailable($event);
             $this->assertGuestIdentity($user, $data, $event);
+            $this->assertAccountIsNotSuspended($user);
 
             return $this->recordCheckIn(
                 $user,
@@ -169,6 +171,7 @@ class AttendanceService
 
             $this->assertEventApproved($event);
             $this->assertGuestIdentity($user, $data, $event);
+            $this->assertAccountIsNotSuspended($user);
 
             return $this->recordCheckOut(
                 $registration,
@@ -227,12 +230,13 @@ class AttendanceService
             $registration = Registration::query()
                 ->where('user_id', $user->id)
                 ->where('event_id', $event->id)
+                ->where('status', 'registered')
                 ->lockForUpdate()
                 ->first();
 
             if (! $registration) {
                 throw new ConflictHttpException(
-                    'The active attendance session does not belong to your account.'
+                    'No active registration was found for this event.'
                 );
             }
 
@@ -357,6 +361,19 @@ class AttendanceService
         }
 
         $this->assertSchoolEmail($user->email, $event);
+    }
+
+    /**
+     * Guests carry no login token, so the account status check that the
+     * `active` middleware applies to logged-in students is repeated here.
+     */
+    private function assertAccountIsNotSuspended(User $user): void
+    {
+        if ($user->status === 'suspended') {
+            throw new AccessDeniedHttpException(
+                'This account has been suspended. Contact an administrator.'
+            );
+        }
     }
 
     private function assertEventApproved(Event $event): void
